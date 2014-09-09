@@ -8,9 +8,10 @@ import kafka.producer.ProducerConfig;
 
 public class KafkaProducer {
 
-    private Producer<String, String> _producer;
+    private final Producer<String, String> _producer;
+    private final String _topic;
 
-    public KafkaProducer(Properties props) {
+    public KafkaProducer(Properties props, String topic) {
 
 //        Properties props = new Properties();
 //
@@ -36,11 +37,16 @@ public class KafkaProducer {
 
         ProducerConfig config = new ProducerConfig(props);
         _producer = new Producer<String, String>(config);
+        _topic = topic;
 
     }
 
-    public void send(String topic, String message) {
-        KeyedMessage<String, String> data = new KeyedMessage<String, String>(topic, "", message);
+    public void send(String message) {
+        send("",message);
+    }
+    
+    public void send(String key, String message) {
+        KeyedMessage<String, String> data = new KeyedMessage<String, String>(_topic, key, message);
         _producer.send(data);
     }
 }

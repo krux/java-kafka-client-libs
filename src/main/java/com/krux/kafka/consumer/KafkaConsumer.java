@@ -265,7 +265,7 @@ public class KafkaConsumer {
 //    }
 
     @SuppressWarnings("unchecked")
-    private static ConsumerConfig createConsumerConfig(OptionSet options, Map<String, OptionSpec> optionSpecs) {
+    public static ConsumerConfig createConsumerConfig(OptionSet options, Map<String, OptionSpec> optionSpecs) {
         Properties props = new Properties();
 
         for (String key : optionSpecs.keySet()) {
