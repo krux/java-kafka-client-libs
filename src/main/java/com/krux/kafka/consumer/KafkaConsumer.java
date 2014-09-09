@@ -46,18 +46,27 @@ public class KafkaConsumer {
         // topicCountMap.put(topic, numOfThreads);
 
         final Map<String, ExecutorService> executors = new HashMap<String, ExecutorService>();
+        LOG.info( "***********Creating consumers: " );
         for ( String topic : _topicMap.keySet() ) {
-
+            LOG.info( "***********Creating consumer for topic : " + topic );
             Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = _topicConsumers.get( topic ).createMessageStreams(
                     _topicMap );
+            
+            for ( String key : consumerMap.keySet() ) {
+                LOG.info( "streams key : " + key  );
+            }
 
             List<KafkaStream<byte[], byte[]>> streams = consumerMap.get( topic );
+            LOG.info( "streams.size() : " + streams.size()  );
 
             // now create an object to consume the messages
+            ExecutorService executor = Executors.newFixedThreadPool( _topicMap.get( topic ) );
+            executors.put( topic, executor );
+            LOG.info( "***********Creating executor for topic : " + topic );
             for ( final KafkaStream<byte[], byte[]> stream : streams ) {
-                ExecutorService executor = Executors.newFixedThreadPool( _topicMap.get( topic ) );
-                executors.put( stream.toString(), executor );
+                LOG.info( "***********Creating stream thread for stream " );
                 executor.submit( new ConsumerThread( stream, topic, _handler ) );
+                LOG.info( "***********Created stream thread for stream " );
             }
         }
 

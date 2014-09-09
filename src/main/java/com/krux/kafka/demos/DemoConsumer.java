@@ -155,16 +155,6 @@ public class DemoConsumer {
                 .ofType( Integer.class ).defaultsTo( 2000 );
         optionSpecs.put( "zookeeper.sync.time.ms", zookeeperSyncTimeMs );
 
-        OptionSpec<Integer> fileRotationInterval = parser
-                .accepts(
-                        "file.rotation.interval.mins",
-                        "Number of minutes between message log file rotations. Rotations happen on "
-                                + "even divisions of this number. For example, specifying '10' as this value will cause files to be "
-                                + "rotated at 12:00, 12:10, 12:20, etc.  Specifying '5' will cause files to be rotated at 12:00, 12:05, "
-                                + "12:10, etc.  All topic log files will be rotated on the same schedule." )
-                .withRequiredArg().ofType( Integer.class ).defaultsTo( 10 );
-        optionSpecs.put( "file.rotation.interval", zookeeperSyncTimeMs );
-
         OptionSpec<String> topicThreadMapping = parser
                 .accepts(
                         "topic-threads",
@@ -181,7 +171,7 @@ public class DemoConsumer {
 
         // ensure required cl options are present
         if ( !options.has( topicThreadMapping ) || !options.has( consumerGroupName ) || !options.has( zookeeperUrl ) ) {
-            LOG.error( "'--topic-threads', '--group.id', '--message.log.dir' and '--zookeeper.connect' and all required parameters. Exitting!" );
+            LOG.error( "'--topic-threads', '--group.id', and '--zookeeper.connect' and all required parameters. Exitting!" );
             System.exit( -1 );
         }
 
@@ -206,14 +196,7 @@ public class DemoConsumer {
         MessageHandler<Object> myHandler = new MessageHandler<Object>() {
             @Override
             public void onMessage( Object message ) {
-                String s = null;
-                try {
-                    s = new String( (byte[])message, "utf8" );
-                } catch ( UnsupportedEncodingException e ) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                System.out.println( Thread.currentThread().getName() + ": " + s );
+                LOG.info( Thread.currentThread().getName() + ": " + (new String((byte[])message)) );
             }
         };
 

@@ -35,11 +35,11 @@ public class ConsumerThread implements Runnable {
 
                 byte[] message = it.next().message();
 
-                if ( LOG.isDebugEnabled() ) {
-                    LOG.debug( "message received: " + message );
-                }
+                //if ( LOG.isDebugEnabled() ) {
+                    LOG.debug( "message received: " + (new String(message)) );
+                //}
                 
-                _handler.onMessage( new String( message, "utf8" ) );
+                _handler.onMessage( message );
 
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time( "kafka_message_received", time );
