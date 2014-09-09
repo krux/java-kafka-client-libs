@@ -25,9 +25,9 @@ public class KafkaConsumer {
 
     private final Map<String, Integer> _topicMap;
     private final Map<String, ConsumerConnector> _topicConsumers;
-    private final MessageHandler<Object> _handler;
+    private final MessageHandler<byte[]> _handler;
 
-    public KafkaConsumer(ConsumerConfig config, Map<String, Integer> topicMap, MessageHandler<Object> handler) {
+    public KafkaConsumer(ConsumerConfig config, Map<String, Integer> topicMap, MessageHandler<byte[]> handler) {
 
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 

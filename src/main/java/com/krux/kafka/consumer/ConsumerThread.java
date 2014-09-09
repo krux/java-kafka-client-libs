@@ -16,9 +16,9 @@ public class ConsumerThread implements Runnable {
     private static AtomicLong totalMessages = new AtomicLong(0);
 
     private final KafkaStream<byte[], byte[]> _stream;
-    private final MessageHandler<Object> _handler;
+    private final MessageHandler<byte[]> _handler;
 
-    public ConsumerThread(KafkaStream<byte[], byte[]> stream, String topic, MessageHandler<Object> handler) {
+    public ConsumerThread(KafkaStream<byte[], byte[]> stream, String topic, MessageHandler<byte[]> handler) {
         _stream = stream;
         _handler = handler;
     }
