@@ -48,9 +48,18 @@ public class KafkaProducer {
         // props.put("client.id", System.getProperty("client.id", ""));
         // props.put("send.buffer.bytes",
         // System.getProperty("send.buffer.bytes", String.valueOf(100 * 1024)));
+        
+        props.put("serializer.class", "kafka.serializer.StringEncoder");
 
         ProducerConfig config = new ProducerConfig( props );
         _producer = new Producer<String, String>( config );
+        _topic = topic;
+
+    }
+    
+    public KafkaProducer( ProducerConfig producerConfig, String topic ) {
+
+        _producer = new Producer<String, String>( producerConfig );
         _topic = topic;
 
     }
@@ -62,5 +71,9 @@ public class KafkaProducer {
     public void send( String key, String message ) {
         KeyedMessage<String, String> data = new KeyedMessage<String, String>( _topic, key, message );
         _producer.send( data );
+    }
+    
+    public void close() {
+        _producer.close();
     }
 }

@@ -1,6 +1,5 @@
 package com.krux.kafka.demos;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,6 +178,7 @@ public class DemoConsumer {
         List<String> topicThreadMappings = options.valuesOf( topicThreadMapping );
         Map<String, Integer> topicMap = new HashMap<String, Integer>();
 
+        //setup our message handler
         for ( String topicThreadCount : topicThreadMappings ) {
             if ( topicThreadCount.contains( "," ) ) {
                 String[] parts = topicThreadCount.split( "," );
@@ -188,8 +188,9 @@ public class DemoConsumer {
             }
         }
 
-        // create single ConsumerConfig for all mappings. Topic and thread
-        // counts will be overridden in BeaconStreamLogger
+        // create single ConsumerConfig for all mappings. 
+        // topics and per-topic thread counts will be overriden in KafkaConsumer during
+        // stream setup
         ConsumerConfig config = KafkaConsumer.createConsumerConfig( options, optionSpecs );
         
         @SuppressWarnings( "unchecked" )
@@ -202,25 +203,6 @@ public class DemoConsumer {
 
         KafkaConsumer runner = new KafkaConsumer( config, topicMap, myHandler );
         runner.start();
-
-        // //setup a consumer that just prints messages to std out
-        // MessageReceiver receiver = new MessageReceiver( "topic1", 1,
-        // "localhost:2181" );
-        // receiver.start();
-        //
-        // MessageSender sender = new MessageSender( "topic1", "localhost:9092"
-        // );
-        // sender.send( "key", "message" );
-        // // or
-        // sender.send( "message" );
-        //
-        // Topic t = new Topics.getTopicFor("topic1");
-        // t.subscribe(messageHandler);
-        //
-        // t.publish("key","message");
-
-        // TopicHandler th = new TopicConsumer( "topic1", 1, )
-        // KafkaConsumer consumer = new KafkaConsumer(props, topicMap);
 
     }
 
