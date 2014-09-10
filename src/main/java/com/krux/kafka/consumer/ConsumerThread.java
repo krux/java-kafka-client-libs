@@ -46,7 +46,11 @@ public class ConsumerThread implements Runnable {
 
             }
         } catch ( Exception e ) {
-            LOG.error( "no longer fetching messages", e );
+            if ( e instanceof InterruptedException ) {
+                LOG.warn( "Consumer group threads interrupted: " + e.getLocalizedMessage() );
+            } else {
+                LOG.error( "no longer fetching messages", e );
+            }
         }
     }
 }

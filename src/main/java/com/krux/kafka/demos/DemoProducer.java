@@ -138,8 +138,7 @@ public class DemoProducer {
             producer.send( runId + ": " + String.valueOf( i ) );
         }
         
-        producer.close();
-
+        System.exit( 0 );
     }
 
 }

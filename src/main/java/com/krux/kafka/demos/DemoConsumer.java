@@ -178,8 +178,7 @@ public class DemoConsumer {
         // parse out topic->thread count mappings
         List<String> topicThreadMappings = options.valuesOf( topicThreadMapping );
         Map<String, Integer> topicMap = new HashMap<String, Integer>();
-
-        //setup our message handler
+   
         for ( String topicThreadCount : topicThreadMappings ) {
             if ( topicThreadCount.contains( "," ) ) {
                 String[] parts = topicThreadCount.split( "," );
@@ -189,8 +188,7 @@ public class DemoConsumer {
             }
         }
 
-        
-        
+       //setup our message handler
         @SuppressWarnings( "unchecked" )
         MessageHandler<Object> myHandler = new MessageHandler<Object>() {
             @Override
@@ -201,7 +199,20 @@ public class DemoConsumer {
 
         Properties consumerProps = createConsumerProperties( options, optionSpecs );
         KafkaConsumer runner = new KafkaConsumer( consumerProps, topicMap, myHandler );
+        
+        //this starts non-daemon thread pools (i.e.: they'll prevent the jvm from closing as long as they're running) 
         runner.start();
+        
+        LOG.info( "All consumer threads running" );
+        
+        try {
+            Thread.sleep( 5000 );
+        } catch ( InterruptedException e ) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        LOG.info( "Exitting..." );
+        runner.stop();
 
     }
     
