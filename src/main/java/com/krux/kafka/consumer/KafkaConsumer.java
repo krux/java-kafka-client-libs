@@ -23,13 +23,13 @@ public class KafkaConsumer {
     private final Map<String, Integer> _topicMap;
     private final Map<String, ConsumerConnector> _topicConsumers;
     private final MessageHandler<?> _handler;
-
-    public KafkaConsumer( ConsumerConfig config, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
-
+    
+    public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
+        
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 
         for ( String topic : topicMap.keySet() ) {
-            ConsumerConfig topicConfig = new ConsumerConfig( config.props().props() );
+            ConsumerConfig topicConfig = new ConsumerConfig( props );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
         _topicMap = topicMap;
@@ -37,13 +37,6 @@ public class KafkaConsumer {
     }
 
     public void start() {
-        // Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-        // String topic = _config.props().getProperty("topic");
-        // LOG.info("topic: " + topic);
-        // int numOfThreads =
-        // Integer.parseInt(_config.props().getProperty("num.of.threads"));
-        // LOG.info("numOfThreads: " + numOfThreads);
-        // topicCountMap.put(topic, numOfThreads);
 
         final Map<String, ExecutorService> executors = new HashMap<String, ExecutorService>();
         LOG.info( "***********Creating consumers: " );

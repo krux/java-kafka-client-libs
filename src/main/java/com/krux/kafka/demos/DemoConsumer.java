@@ -3,6 +3,7 @@ package com.krux.kafka.demos;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -188,10 +189,7 @@ public class DemoConsumer {
             }
         }
 
-        // create single ConsumerConfig for all mappings. 
-        // topics and per-topic thread counts will be overriden in KafkaConsumer during
-        // stream setup
-        ConsumerConfig config = KafkaConsumer.createConsumerConfig( options, optionSpecs );
+        
         
         @SuppressWarnings( "unchecked" )
         MessageHandler<Object> myHandler = new MessageHandler<Object>() {
@@ -201,9 +199,21 @@ public class DemoConsumer {
             }
         };
 
-        KafkaConsumer runner = new KafkaConsumer( config, topicMap, myHandler );
+        Properties consumerProps = createConsumerProperties( options, optionSpecs );
+        KafkaConsumer runner = new KafkaConsumer( consumerProps, topicMap, myHandler );
         runner.start();
 
+    }
+    
+    @SuppressWarnings( "unchecked" )
+    public static Properties createConsumerProperties( OptionSet options, Map<String, OptionSpec> optionSpecs ) {
+        Properties props = new Properties();
+
+        for ( String key : optionSpecs.keySet() ) {
+            LOG.info( key + ": " + options.valueOf( optionSpecs.get( key ) ) );
+            props.put( key, String.valueOf( options.valueOf( optionSpecs.get( key ) ) ) );
+        }
+        return props;
     }
 
 }
