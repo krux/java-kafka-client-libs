@@ -16,7 +16,7 @@ public class TopicUtils {
         client.start();
 
         try {
-            List<String> children = client.getChildren().forPath("/config/topics/");
+            List<String> children = client.getChildren().forPath("/config/topics");
             
             return children;
         } catch (Exception e) {

@@ -205,14 +205,14 @@ public class DemoConsumer {
         
         LOG.info( "All consumer threads running" );
         
-        try {
-            Thread.sleep( 5000 );
-        } catch ( InterruptedException e ) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        LOG.info( "Exitting..." );
-        runner.stop();
+//        try {
+//            Thread.sleep( 5000 );
+//        } catch ( InterruptedException e ) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        LOG.info( "Exitting..." );
+//        runner.stop();
 
     }
     

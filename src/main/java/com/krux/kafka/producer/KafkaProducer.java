@@ -38,13 +38,7 @@ public class KafkaProducer {
 
         ProducerConfig config = new ProducerConfig( props );
         _producer = new Producer<byte[], byte[]>( config );
-        _topic = topic;
-
-    }
-    
-    public KafkaProducer( ProducerConfig producerConfig, String topic ) {
-
-        _producer = new Producer<byte[], byte[]>( producerConfig );
+        _producers.add( _producer );
         _topic = topic;
 
     }
@@ -55,6 +49,10 @@ public class KafkaProducer {
 
     public void send( String key, String message ) {
         send( key.getBytes(), message.getBytes() );
+    }
+    
+    public void send( byte[] message ) {
+        send( "".getBytes(), message );
     }
     
     public void send( byte[] key, byte[] message ) {
