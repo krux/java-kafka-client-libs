@@ -12,6 +12,8 @@ import kafka.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.krux.stdlib.KruxStdLib;
+
 public class KafkaProducer {
     
     private static final Logger LOG = LoggerFactory.getLogger( KafkaProducer.class );
@@ -56,7 +58,10 @@ public class KafkaProducer {
     }
     
     public void send( byte[] key, byte[] message ) {
+        long start = System.currentTimeMillis();
         KeyedMessage<byte[], byte[]> data = new KeyedMessage<byte[], byte[]>( _topic, key, message );
         _producer.send( data );
+        long time = System.currentTimeMillis() - start;
+        KruxStdLib.STATSD.time( "message_sent." + _topic, time );
     }
 }

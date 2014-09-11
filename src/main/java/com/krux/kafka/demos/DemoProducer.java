@@ -89,6 +89,12 @@ public class DemoProducer {
                 .withOptionalArg().ofType(String.class).defaultsTo("");
         OptionSpec<Integer> sendBufferBytes = parser.accepts("send.buffer.bytes", "Socket write buffer size")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(100 * 1024);
+        
+        OptionSpec<Integer> numOfMessagesToSend = parser
+                .accepts(
+                        "num-of-messages-to-send",
+                        "Total number of messages to send.")
+                .withRequiredArg().ofType(Integer.class);
 
         // give parser to KruxStdLib so it can add our params to the reserved
         // list
@@ -100,8 +106,8 @@ public class DemoProducer {
         OptionSet options = KruxStdLib.initialize(desc.toString(), args);
         
         //make sure we have what we need
-        if ( !options.has( topic ) || !options.has(  kafkaBrokers ) ) {
-            LOG.error( "--topic and --metadata.broker.list are required cl params. Rerun with -h for more info." );
+        if ( !options.has( topic ) || !options.has(  kafkaBrokers ) || !options.has(  numOfMessagesToSend )) {
+            LOG.error( "--topic, --metadata.broker.list and --num-of-messages-to-send are required cl params. Rerun with -h for more info." );
             System.exit( -1 );
         }
 
@@ -133,10 +139,15 @@ public class DemoProducer {
         Random r = new Random();
         int j = Math.abs( r.nextInt() );
         String runId = Integer.toHexString( j );
-        //send 1000 messages 
-        for (int i = 0; i < 1000; i++ ) {
+        int numMessages = options.valueOf((  numOfMessagesToSend ));
+        
+        LOG.info( "Sending " +  numMessages + " messages." );
+        int count = 0;
+        for (int i = 0; i < numMessages; i++ ) {
             producer.send( runId + ": " + String.valueOf( i ) );
+            count++;
         }
+        LOG.info( "Sent " +  count + " messages." );
         
         System.exit( 0 );
     }

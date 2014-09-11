@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-import kafka.consumer.ConsumerConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.kafka.consumer.KafkaConsumer;
-import com.krux.kafka.consumer.MessageHandler;
 import com.krux.stdlib.KruxStdLib;
 
 public class DemoConsumer {
@@ -76,7 +76,7 @@ public class DemoConsumer {
         OptionSpec<Integer> autoCommitInterval = parser
                 .accepts( "auto.commit.interval.ms",
                         "The frequency in ms that the consumer offsets are committed to zookeeper." ).withRequiredArg()
-                .ofType( Integer.class ).defaultsTo( 60 * 1000 );
+                .ofType( Integer.class ).defaultsTo( 15 * 1000 );
         optionSpecs.put( "auto.commit.interval.ms", autoCommitInterval );
 
         OptionSpec<Integer> maxMessageChunks = parser
@@ -190,12 +190,7 @@ public class DemoConsumer {
 
        //setup our message handler
         @SuppressWarnings( "unchecked" )
-        MessageHandler<Object> myHandler = new MessageHandler<Object>() {
-            @Override
-            public void onMessage( Object message ) {
-                LOG.info( Thread.currentThread().getName() + ": " + (new String((byte[])message)) );
-            }
-        };
+        final DemoHandler<Object> myHandler = new DemoHandler<Object>();
 
         Properties consumerProps = createConsumerProperties( options, optionSpecs );
         KafkaConsumer runner = new KafkaConsumer( consumerProps, topicMap, myHandler );
@@ -204,6 +199,17 @@ public class DemoConsumer {
         runner.start();
         
         LOG.info( "All consumer threads running" );
+        
+        //Start a thread that will output the number of messages consumed 
+        TimerTask r = new TimerTask() {
+            @Override
+            public void run() {
+                LOG.info( "Messages consumed: " + myHandler.getCount()  );
+            }
+        };
+        
+        Timer t = new Timer();
+        t.schedule( r, 3000, 3000 );
         
 //        try {
 //            Thread.sleep( 5000 );
