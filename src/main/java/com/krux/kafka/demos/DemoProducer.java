@@ -1,5 +1,6 @@
 package com.krux.kafka.demos;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -39,6 +40,7 @@ public class DemoProducer {
                         "request.required.acks",
                         "The type of ack the broker will return to the client.\n  0, which means that the producer never waits for an acknowledgement\n  1, which means that the producer gets an acknowledgement after the leader replica has received the data.\n  -1, which means that the producer gets an acknowledgement after all in-sync replicas have received the data.\nSee https://kafka.apache.org/documentation.html#producerconfigs")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(1);
+        
         OptionSpec<String> producerType = parser.accepts("producer.type", "'sync' or 'async'").withOptionalArg()
                 .ofType(String.class).defaultsTo("async");
 
@@ -143,11 +145,16 @@ public class DemoProducer {
         
         LOG.info( "Sending " +  numMessages + " messages." );
         int count = 0;
-        for (int i = 0; i < numMessages; i++ ) {
-            producer.send( runId + ": " + String.valueOf( i ) );
-            count++;
+        try {
+            String host = InetAddress.getLocalHost().getHostName();
+            for (int i = 0; i < numMessages; i++ ) {
+                producer.send( runId + ": " + host );
+                count++;
+            }
+            LOG.info( "Sent " +  count + " messages." );
+        } catch ( Exception e ) {
+            LOG.error( "Can't send messages", e );
         }
-        LOG.info( "Sent " +  count + " messages." );
         
         System.exit( 0 );
     }

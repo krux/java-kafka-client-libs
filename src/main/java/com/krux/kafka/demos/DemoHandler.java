@@ -17,6 +17,9 @@ public class DemoHandler<T> implements MessageHandler {
     public void onMessage( Object message ) {
         //LOG.info( Thread.currentThread().getName() + ": " + (new String((byte[])message)) );
         messageCount.incrementAndGet();
+        if ( messageCount.get() % 10000 == 0 ) {
+            LOG.info( new String( (byte[]) message ) );
+        }
     }
     
     public long getCount() {
