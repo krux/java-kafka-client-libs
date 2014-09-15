@@ -68,7 +68,7 @@ public class DemoProducer {
                 .accepts(
                         "queue.buffering.max.ms",
                         "Maximum time to buffer data when using async mode. For example a setting of 100 will try to batch together 100ms of messages to send at once. This will improve throughput but adds message delivery latency due to the buffering.")
-                .withOptionalArg().ofType(Integer.class).defaultsTo(5000);
+                .withOptionalArg().ofType(Integer.class).defaultsTo(500);
         OptionSpec<Integer> queueBufferingMaxMessages = parser
                 .accepts(
                         "queue.buffering.max.messages",
@@ -83,7 +83,7 @@ public class DemoProducer {
                 .accepts(
                         "batch.num.messages",
                         "The number of messages to send in one batch when using async mode. The producer will wait until either this number of messages are ready to send or queue.buffer.max.ms is reached.")
-                .withOptionalArg().ofType(Integer.class).defaultsTo(200);
+                .withOptionalArg().ofType(Integer.class).defaultsTo(2000);
         OptionSpec<String> clientId = parser
                 .accepts(
                         "client.id",
@@ -135,6 +135,8 @@ public class DemoProducer {
         producerProps.setProperty("batch.num.messages", String.valueOf(options.valueOf(batchNumMessages)));
         producerProps.setProperty("client.id", options.valueOf(clientId));
         producerProps.setProperty("send.buffer.bytes", String.valueOf((Integer) optionMap.get(sendBufferBytes).get(0)));
+        producerProps.put("partitioner.class",
+                System.getProperty("partitioner.class", "com.krux.kafka.producer.SimplePartitioner"));
         
         KafkaProducer producer = new KafkaProducer( producerProps, topicName );
 
