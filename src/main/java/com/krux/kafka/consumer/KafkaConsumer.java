@@ -52,6 +52,7 @@ public class KafkaConsumer {
             String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
             consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
             LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
+            LOG.warn(  consumerProps.toString() );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
@@ -69,7 +70,7 @@ public class KafkaConsumer {
             String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
             consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
             LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
-            consumerProps.setProperty( "group.id", consumerProps.getProperty( "group.id" ) + normalizedTopic );
+            LOG.warn(  consumerProps.toString() );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
