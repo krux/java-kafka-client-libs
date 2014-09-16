@@ -49,7 +49,9 @@ public class KafkaConsumer {
 
         for ( String topic : topicMap.keySet() ) {
             String normalizedTopic = topic.replace( ".", "_" );
-            consumerProps.setProperty( "group.id", consumerProps.getProperty( "group.id" ) + normalizedTopic );
+            String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
+            consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
+            LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
@@ -64,6 +66,9 @@ public class KafkaConsumer {
 
         for ( String topic : topicMap.keySet() ) {
             String normalizedTopic = topic.replace( ".", "_" );
+            String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
+            consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
+            LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
             consumerProps.setProperty( "group.id", consumerProps.getProperty( "group.id" ) + normalizedTopic );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
