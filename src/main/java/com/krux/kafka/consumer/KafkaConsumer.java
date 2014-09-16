@@ -43,12 +43,13 @@ public class KafkaConsumer {
             }
         }
         
-        Properties consumerProps = PropertiesUtils.createPropertiesFromOptionSpec( options );
-        
+        Properties consumerProps = (Properties)PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 
         for ( String topic : topicMap.keySet() ) {
+            String normalizedTopic = topic.replace( ".", "_" );
+            consumerProps.setProperty( "group.id", consumerProps.getProperty( "group.id" ) + normalizedTopic );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
@@ -57,11 +58,14 @@ public class KafkaConsumer {
     }
     
     public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
+        Properties consumerProps = (Properties)props.clone();
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 
         for ( String topic : topicMap.keySet() ) {
-            ConsumerConfig topicConfig = new ConsumerConfig( props );
+            String normalizedTopic = topic.replace( ".", "_" );
+            consumerProps.setProperty( "group.id", consumerProps.getProperty( "group.id" ) + normalizedTopic );
+            ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
         _topicMap = topicMap;
