@@ -41,7 +41,7 @@ public class KafkaProducer {
     }
 
     public KafkaProducer( Properties props, String topic ) {
-
+        LOG.warn(  "Producer properties: " + props.toString() );
         ProducerConfig config = new ProducerConfig( props );
         _producer = new Producer<byte[], byte[]>( config );
         _producers.add( _producer );
@@ -50,6 +50,7 @@ public class KafkaProducer {
     
     public KafkaProducer( OptionSet options, String topic ) {
         Properties props = PropertiesUtils.createPropertiesFromOptionSpec( options );
+        LOG.warn(  "Producer properties: " + props.toString() );
         //          producerProps.put("partitioner.class",
         //          System.getProperty("partitioner.class", "com.krux.kafka.producer.SimplePartitioner"));
         ProducerConfig config = new ProducerConfig( props );
