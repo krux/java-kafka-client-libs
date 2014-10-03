@@ -144,7 +144,7 @@ public class KafkaConsumer {
 
         OptionSpec<Integer> receiveBufferSize = parser
                 .accepts( "socket.receive.buffer.bytes", "The socket receive buffer for network requests" )
-                .withRequiredArg().ofType( Integer.class ).defaultsTo( 64 * 1024 );
+                .withRequiredArg().ofType( Integer.class ).defaultsTo( 1000 * 1024 );
 
         OptionSpec<Boolean> parseMessagesAsJson = parser
                 .accepts( "parse.messages.as.json", "Toggle for parsing messages as JSON" ).withRequiredArg()
@@ -154,7 +154,7 @@ public class KafkaConsumer {
                 .accepts(
                         "fetch.message.max.bytes",
                         "The number of byes of messages to attempt to fetch for each topic-partition in each fetch request. These bytes will be read into memory for each partition, so this helps control the memory used by the consumer. The fetch request size must be at least as large as the maximum message size the server allows or else it is possible for the producer to send messages larger than the consumer can fetch." )
-                .withRequiredArg().ofType( Integer.class ).defaultsTo( 1024 * 1024 );
+                .withRequiredArg().ofType( Integer.class ).defaultsTo( 1000 * 1024 );
 
         OptionSpec<Boolean> commitOffsets = parser
                 .accepts(
