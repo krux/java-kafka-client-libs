@@ -208,7 +208,7 @@ public class KafkaConsumer {
         OptionSpec<Integer> consumerTimeoutMs = parser
                 .accepts( "consumer.timeout.ms",
                         "Throw a timeout exception to the consumer if no message is available for consumption after the specified interval" )
-                .withRequiredArg().ofType( Integer.class ).defaultsTo( 48 * 60 * 60 * 1000 ); //48 hours - seems long enough
+                .withRequiredArg().ofType( Integer.class ).defaultsTo( -1 ); //48 hours - seems long enough
 
         OptionSpec<String> clientId = parser
                 .accepts(
