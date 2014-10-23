@@ -45,6 +45,7 @@ public class ConsumerThread implements Runnable {
 
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time( "message_received." + _topic, time );
+                KruxStdLib.STATSD.time( "message_received_all", time );
 
             }
         } catch ( Exception e ) {

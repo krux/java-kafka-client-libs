@@ -78,6 +78,7 @@ public class KafkaProducer {
         long time = System.currentTimeMillis() - start;
         try {
             KruxStdLib.STATSD.time( "message_sent." + _topic, time );
+            KruxStdLib.STATSD.time( "message_sent_all", time );
         } catch ( Exception e ) {}
     }
     
