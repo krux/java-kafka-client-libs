@@ -79,7 +79,9 @@ public class KafkaProducer {
         try {
             KruxStdLib.STATSD.time( "message_sent." + _topic, time );
             KruxStdLib.STATSD.time( "message_sent_all", time );
-        } catch ( Exception e ) {}
+        } catch ( Exception e ) {
+            LOG.error( "cannot send statsd stats", e );
+        }
     }
     
     
