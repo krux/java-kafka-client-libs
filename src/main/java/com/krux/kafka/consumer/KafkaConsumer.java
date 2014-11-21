@@ -1,5 +1,7 @@
 package com.krux.kafka.consumer;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +25,10 @@ public class KafkaConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger( KafkaConsumer.class );
 
-    private final Map<String, Integer> _topicMap;
-    private final Map<String, ConsumerConnector> _topicConsumers;
-    private final MessageHandler<?> _handler;
-    final Map<String, ExecutorService> _executors;
+    private Map<String, Integer> _topicMap;
+    private Map<String, ConsumerConnector> _topicConsumers;
+    private MessageHandler<?> _handler;
+    Map<String, ExecutorService> _executors;
     
     public KafkaConsumer( OptionSet options, MessageHandler<?> handler ) {
         
@@ -44,14 +46,23 @@ public class KafkaConsumer {
         }
         
         Properties consumerProps = (Properties)PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
+        setUpConsumer( topicMap, handler, consumerProps );
+    }
+    
+    public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
+        Properties consumerProps = (Properties)props.clone();
+        setUpConsumer( topicMap, handler, consumerProps );
+    }
+
+    private void setUpConsumer( Map<String, Integer> topicMap, MessageHandler<?> handler, Properties consumerProps ) {
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 
         for ( String topic : topicMap.keySet() ) {
             String normalizedTopic = topic.replace( ".", "_" );
-            String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
+            String normalizedConsumerGroupId = getGroupId( consumerProps.getProperty( "group.id" ), normalizedTopic );
             consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
-            LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
+            LOG.warn(  "Consuming topic '" + topic + "' with group.id '" + normalizedConsumerGroupId + "'" );
             LOG.warn(  consumerProps.toString() );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
@@ -59,23 +70,18 @@ public class KafkaConsumer {
         _topicMap = topicMap;
         _handler = handler;
     }
-    
-    public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
-        Properties consumerProps = (Properties)props.clone();
-        _executors = new HashMap<String, ExecutorService>();
-        _topicConsumers = new HashMap<String, ConsumerConnector>();
 
-        for ( String topic : topicMap.keySet() ) {
-            String normalizedTopic = topic.replace( ".", "_" );
-            String normalizedConsumerGroupId = consumerProps.getProperty( "group.id" ) + "_" + normalizedTopic;
-            consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
-            LOG.warn(  "Consuming " + topic + " with group.id " + normalizedConsumerGroupId );
-            LOG.warn(  consumerProps.toString() );
-            ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
-            _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
+    private String getGroupId( String groupProperty, String normalizedTopic ) {
+        LOG.warn( "*****groupProperty: " + groupProperty );
+        if ( groupProperty == null || groupProperty.trim().equals( "" ) || groupProperty.equals( "null" ) ) {
+            try {
+                LOG.warn( "*****host: " + InetAddress.getLocalHost().getHostName() );
+                groupProperty = InetAddress.getLocalHost().getHostName().split( "\\." )[0].trim();
+            } catch ( UnknownHostException e ) {
+                LOG.error(  "can't resolve hostname", e );
+            }
         }
-        _topicMap = topicMap;
-        _handler = handler;
+        return groupProperty + "_" + normalizedTopic;
     }
 
     public void start() {

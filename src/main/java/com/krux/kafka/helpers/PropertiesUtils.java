@@ -23,7 +23,6 @@ public class PropertiesUtils {
             Collection keys = spec.options();
             for ( Object o1 : keys ) {
                 String key = String.valueOf( o1 );
-                //LOG.info( String.valueOf( o1 ) );
                 LOG.info( key + ": " + options.valueOf( key ) );
                 props.put( key, String.valueOf( options.valueOf( key ) ) );
             }
