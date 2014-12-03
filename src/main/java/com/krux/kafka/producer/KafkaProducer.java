@@ -73,10 +73,14 @@ public class KafkaProducer {
     
     public void send( byte[] key, byte[] message ) {
         long start = System.currentTimeMillis();
+        LOG.info( "Sending message to " + _topic );
         KeyedMessage<byte[], byte[]> data = new KeyedMessage<byte[], byte[]>( _topic, key, message );
         _producer.send( data );
         long time = System.currentTimeMillis() - start;
         try {
+            if ( KruxStdLib.STATSD == null ) {
+                LOG.error(  "WTF? STATSD is null?!" );
+            }
             KruxStdLib.STATSD.time( "message_sent." + _topic, time );
             KruxStdLib.STATSD.time( "message_sent_all", time );
         } catch ( Exception e ) {
