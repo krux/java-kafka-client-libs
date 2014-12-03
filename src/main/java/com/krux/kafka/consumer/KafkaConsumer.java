@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -113,20 +114,22 @@ public class KafkaConsumer {
         Runtime.getRuntime().addShutdownHook( new Thread() {
             @Override
             public void run() {
-                LOG.info( "Shutting down consumer thread pools" );
-                for ( String key : _topicMap.keySet() ) {
-                    ExecutorService executor = _executors.get( key );
-                    executor.shutdownNow();
-                }
+                shutdown();
             }
         } );
     }
 
-    public void stop() {
+    public void shutdown() {
         LOG.info( "Shutting down consumer thread pools" );
         for ( String key : _topicMap.keySet() ) {
             ExecutorService executor = _executors.get( key );
-            executor.shutdownNow();
+            executor.shutdown();
+            try {
+                // wait for the consumer threads to complete
+                executor.awaitTermination(2000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                LOG.error("Executor service shutdown interrupted", e);
+            }
         }
     }
     
