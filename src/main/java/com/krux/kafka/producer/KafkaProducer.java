@@ -156,6 +156,11 @@ public class KafkaProducer {
                 .withOptionalArg().ofType(String.class).defaultsTo("");
         OptionSpec<Integer> sendBufferBytes = parser.accepts("send.buffer.bytes", "Socket write buffer size")
                 .withOptionalArg().ofType(Integer.class).defaultsTo(100 * 1024);
+        OptionSpec<String> partitionClass = parser
+                .accepts(
+                        "partitioner.class",
+                        "The partitioner class for partitioning messages amongst sub-topics. ")
+                .withOptionalArg().ofType(String.class).defaultsTo("com.krux.kafka.producer.SimplePartitioner");
         
     }
     
