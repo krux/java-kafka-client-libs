@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.krux.kafka.producer.KafkaProducer;
 import com.krux.stdlib.KruxStdLib;
 
+/** A simple producer that will push messages to a passed-in topic and then exit */
 public class DemoProducer {
     
     private static final Logger LOG = LoggerFactory.getLogger( DemoProducer.class );
@@ -33,11 +34,7 @@ public class DemoProducer {
         // give parser to KruxStdLib so it can add our params to the reserved
         // list
         KruxStdLib.setOptionParser(parser);
-        StringBuilder desc = new StringBuilder();
-        desc.append("\nKrux Kafka Stream Listener\n");
-        desc.append("**************************\n");
-        desc.append("Will pass incoming eol-delimitted messages on tcp streams to mapped Kafka topics.\n");
-        OptionSet options = KruxStdLib.initialize(desc.toString(), args);
+        OptionSet options = KruxStdLib.initialize(args);
         
         //make sure we have what we need
         if ( !options.has( "topic" ) || !options.has(  "metadata.broker.list" ) || !options.has(  "num-of-messages-to-send" )) {
@@ -69,6 +66,7 @@ public class DemoProducer {
             LOG.error( "Can't send messages", e );
         }
         
+        //by default, krux producer is async.  Must force quit to kill the processing thread.
         System.exit( 0 );
     }
 

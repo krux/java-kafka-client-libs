@@ -1,16 +1,10 @@
 package com.krux.kafka.demos;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.krux.kafka.consumer.KafkaConsumer;
 import com.krux.stdlib.KruxStdLib;
 
+/** A simple consumer that will listen to a passed-in topic and log consumed message counts */
 public class DemoConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger( KafkaConsumer.class );
@@ -40,6 +35,8 @@ public class DemoConsumer {
         
        //setup our message handler
         @SuppressWarnings( "unchecked" )
+        
+        //MessageHandlers, in the current code, *must* be thread-safe
         final DemoHandler<Object> myHandler = new DemoHandler<Object>();
         
         KafkaConsumer runner = new KafkaConsumer( options, myHandler );
