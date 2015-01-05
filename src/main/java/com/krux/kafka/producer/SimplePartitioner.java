@@ -10,13 +10,13 @@ public class SimplePartitioner implements Partitioner {
     private static Random _r = new Random();
 
     /* may use this later */
-    public SimplePartitioner(VerifiableProperties props) {
+    public SimplePartitioner( VerifiableProperties props ) {
 
     }
 
     @Override
-    public int partition(Object obj, int a_numPartitions) {
-        return _r.nextInt(a_numPartitions);
+    public int partition( Object obj, int a_numPartitions ) {
+        return _r.nextInt( a_numPartitions );
     }
 
 }

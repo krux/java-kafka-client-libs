@@ -1,6 +1,6 @@
 package com.krux.mm.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
 
@@ -32,14 +32,14 @@ public class PropsCloneTest {
     public void test() {
         Properties props = new Properties();
         props.setProperty( "cass", "was here" );
-        
+
         Properties propsClone = (Properties) props.clone();
-        
+
         propsClone.setProperty( "cass", "wasn't here" );
-        
+
         assertEquals( props.getProperty( "cass" ), "was here" );
         assertEquals( propsClone.getProperty( "cass" ), "wasn't here" );
-        
+
     }
 
 }

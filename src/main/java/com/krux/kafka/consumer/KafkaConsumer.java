@@ -29,13 +29,13 @@ public class KafkaConsumer {
     private Map<String, ConsumerConnector> _topicConsumers;
     private MessageHandler<?> _handler;
     Map<String, ExecutorService> _executors;
-    
+
     public KafkaConsumer( OptionSet options, MessageHandler<?> handler ) {
-        
+
         // parse out topic->thread count mappings
-        List<String> topicThreadMappings = (List<String>)options.valuesOf( "topic-threads" );
+        List<String> topicThreadMappings = (List<String>) options.valuesOf( "topic-threads" );
         Map<String, Integer> topicMap = new HashMap<String, Integer>();
-   
+
         for ( String topicThreadCount : topicThreadMappings ) {
             if ( topicThreadCount.contains( "," ) ) {
                 String[] parts = topicThreadCount.split( "," );
@@ -44,13 +44,13 @@ public class KafkaConsumer {
                 topicMap.put( topicThreadCount, 1 );
             }
         }
-        
-        Properties consumerProps = (Properties)PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
+
+        Properties consumerProps = (Properties) PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
         setUpConsumer( topicMap, handler, consumerProps );
     }
-    
+
     public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
-        Properties consumerProps = (Properties)props.clone();
+        Properties consumerProps = (Properties) props.clone();
         setUpConsumer( topicMap, handler, consumerProps );
     }
 
@@ -62,8 +62,8 @@ public class KafkaConsumer {
             String normalizedTopic = topic.replace( ".", "_" );
             String normalizedConsumerGroupId = getGroupId( consumerProps.getProperty( "group.id" ), normalizedTopic );
             consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
-            LOG.warn(  "Consuming topic '" + topic + "' with group.id '" + normalizedConsumerGroupId + "'" );
-            LOG.warn(  consumerProps.toString() );
+            LOG.warn( "Consuming topic '" + topic + "' with group.id '" + normalizedConsumerGroupId + "'" );
+            LOG.warn( consumerProps.toString() );
             ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
@@ -78,7 +78,7 @@ public class KafkaConsumer {
                 LOG.warn( "*****host: " + InetAddress.getLocalHost().getHostName() );
                 groupProperty = InetAddress.getLocalHost().getHostName().split( "\\." )[0].trim();
             } catch ( UnknownHostException e ) {
-                LOG.error(  "can't resolve hostname", e );
+                LOG.error( "can't resolve hostname", e );
             }
         }
         return groupProperty + "_" + normalizedTopic;
@@ -91,13 +91,13 @@ public class KafkaConsumer {
             LOG.info( "***********Creating consumer for topic : " + topic );
             Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = _topicConsumers.get( topic ).createMessageStreams(
                     _topicMap );
-            
+
             for ( String key : consumerMap.keySet() ) {
-                LOG.info( "streams key : " + key  );
+                LOG.info( "streams key : " + key );
             }
 
             List<KafkaStream<byte[], byte[]>> streams = consumerMap.get( topic );
-            LOG.info( "streams.size() : " + streams.size()  );
+            LOG.info( "streams.size() : " + streams.size() );
 
             // now create an object to consume the messages
             ExecutorService executor = Executors.newFixedThreadPool( _topicMap.get( topic ) );
@@ -129,9 +129,9 @@ public class KafkaConsumer {
             executor.shutdownNow();
         }
     }
-    
+
     public static void addStandardOptionsToParser( OptionParser parser ) {
-        
+
         OptionSpec<String> consumerGroupName = parser.accepts( "group.id", "Consumer group name." ).withRequiredArg()
                 .ofType( String.class );
         OptionSpec<String> zookeeperUrl = parser
@@ -142,7 +142,7 @@ public class KafkaConsumer {
                                 + "An optional \"chroot\" suffix may also be appended to the connection string. (e.g. "
                                 + "\"127.0.0.1:4545/app/a\" or \"127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002/app/a\"). " )
                 .withRequiredArg().ofType( String.class );
-        
+
         OptionSpec<Integer> socketTimeout = parser
                 .accepts( "socket.timeout.ms",
                         "The socket timeout for network requests. The actual timeout set will be max.fetch.wait + socket.timeout.ms." )
@@ -177,7 +177,7 @@ public class KafkaConsumer {
                 .accepts( "queued.max.message.chunks",
                         "Max number of message chunks buffered for consumption. Each chunk can be up to fetch.message.max.bytes." )
                 .withRequiredArg().ofType( Integer.class ).defaultsTo( 100 );
- 
+
         OptionSpec<Integer> rebalanceMaxRetries = parser
                 .accepts(
                         "rebalance.max.retries",
@@ -199,7 +199,7 @@ public class KafkaConsumer {
         OptionSpec<Integer> rebalanceBackoffMs = parser
                 .accepts( "rebalance.backoff.ms", "Backoff time between retries during rebalance." ).withRequiredArg()
                 .ofType( Integer.class ).defaultsTo( 2000 );
- 
+
         OptionSpec<Integer> refreshLeaderBackoff = parser
                 .accepts( "refresh.leader.backoff.ms",
                         "Backoff time to wait before trying to determine the leader of a partition that has just lost its leader." )
@@ -214,7 +214,12 @@ public class KafkaConsumer {
         OptionSpec<Integer> consumerTimeoutMs = parser
                 .accepts( "consumer.timeout.ms",
                         "Throw a timeout exception to the consumer if no message is available for consumption after the specified interval" )
-                .withRequiredArg().ofType( Integer.class ).defaultsTo( -1 ); //48 hours - seems long enough
+                .withRequiredArg().ofType( Integer.class ).defaultsTo( -1 ); // 48
+                                                                             // hours
+                                                                             // -
+                                                                             // seems
+                                                                             // long
+                                                                             // enough
 
         OptionSpec<String> clientId = parser
                 .accepts(
@@ -236,7 +241,7 @@ public class KafkaConsumer {
         OptionSpec<Integer> zookeeperSyncTimeMs = parser
                 .accepts( "zookeeper.sync.time.ms", "How far a ZK follower can be behind a ZK leader" ).withRequiredArg()
                 .ofType( Integer.class ).defaultsTo( 2000 );
- 
+
         OptionSpec<String> topicThreadMapping = parser
                 .accepts(
                         "topic-threads",
@@ -246,17 +251,16 @@ public class KafkaConsumer {
                                 + "one --topic.thread must be specified.  The thread pool sizes can be omitted, like so: '--topic.threads topic1 "
                                 + "--topic.threads topic2' If so, each topic will be assigned a single thread for consumption." )
                 .withRequiredArg().ofType( String.class );
-        
+
     }
-    
+
     public static OptionParser getStandardOptionParser() {
-        
+
         OptionParser parser = new OptionParser();
-        
+
         addStandardOptionsToParser( parser );
-        
+
         return parser;
     }
-    
 
 }

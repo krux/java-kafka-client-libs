@@ -8,20 +8,21 @@ import org.slf4j.LoggerFactory;
 import com.krux.kafka.consumer.MessageHandler;
 
 public class DemoHandler<T> implements MessageHandler {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger( DemoHandler.class );
-    
-    private final AtomicLong messageCount = new AtomicLong(0);
+
+    private final AtomicLong messageCount = new AtomicLong( 0 );
+
     @Override
-    
     public void onMessage( Object message ) {
-        //LOG.info( Thread.currentThread().getName() + ": " + (new String((byte[])message)) );
+        // LOG.info( Thread.currentThread().getName() + ": " + (new
+        // String((byte[])message)) );
         messageCount.incrementAndGet();
         if ( messageCount.get() % 10000 == 0 ) {
             LOG.info( new String( (byte[]) message ) );
         }
     }
-    
+
     public long getCount() {
         return messageCount.get();
     }

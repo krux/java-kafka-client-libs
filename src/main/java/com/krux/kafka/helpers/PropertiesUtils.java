@@ -11,15 +11,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PropertiesUtils {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger( PropertiesUtils.class );
-    
+
     public static Properties createPropertiesFromOptionSpec( OptionSet options ) {
         Properties props = new Properties();
         Map optionsMap = options.asMap();
 
         for ( Object o : optionsMap.keySet() ) {
-            OptionSpec spec = (OptionSpec)o;
+            OptionSpec spec = (OptionSpec) o;
             Collection keys = spec.options();
             for ( Object o1 : keys ) {
                 String key = String.valueOf( o1 );
