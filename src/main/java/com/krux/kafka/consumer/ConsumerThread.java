@@ -13,10 +13,10 @@ import com.krux.stdlib.KruxStdLib;
 public class ConsumerThread implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger( ConsumerThread.class );
-    private static AtomicLong totalMessages = new AtomicLong( 0 );
+    //private static AtomicLong totalMessages = new AtomicLong( 0 );
 
     private final KafkaStream<byte[], byte[]> _stream;
-    private final MessageHandler _handler;
+    private final MessageHandler<byte[]> _handler;
     private String _topic;
 
     public ConsumerThread( KafkaStream<byte[], byte[]> stream, String topic, MessageHandler handler ) {
@@ -33,7 +33,7 @@ public class ConsumerThread implements Runnable {
             ConsumerIterator<byte[], byte[]> it = _stream.iterator();
             while ( it.hasNext() ) {
                 long start = System.currentTimeMillis();
-                totalMessages.incrementAndGet();
+                //totalMessages.incrementAndGet();
 
                 byte[] message = it.next().message();
 
@@ -45,7 +45,7 @@ public class ConsumerThread implements Runnable {
 
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time( "message_received." + _topic, time );
-                KruxStdLib.STATSD.time( "message_received_all", time );
+                //KruxStdLib.STATSD.time( "message_received_all", time );
 
             }
         } catch ( Exception e ) {
