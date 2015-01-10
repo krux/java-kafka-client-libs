@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.krux.kafka.helpers.PropertiesUtils;
+import com.krux.stdlib.KruxStdLib;
+import com.krux.stdlib.shutdown.ShutdownTask;
 
 public class KafkaConsumer {
 
@@ -110,14 +112,10 @@ public class KafkaConsumer {
             }
         }
 
-        Runtime.getRuntime().addShutdownHook( new Thread() {
+        KruxStdLib.registerShutdownHook( new ShutdownTask( 50 ) {
             @Override
             public void run() {
-                LOG.info( "Shutting down consumer thread pools" );
-                for ( String key : _topicMap.keySet() ) {
-                    ExecutorService executor = _executors.get( key );
-                    executor.shutdownNow();
-                }
+                stop();
             }
         } );
     }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.krux.kafka.helpers.PropertiesUtils;
 import com.krux.stdlib.KruxStdLib;
+import com.krux.stdlib.shutdown.ShutdownTask;
 
 public class KafkaProducer {
 
@@ -28,7 +29,7 @@ public class KafkaProducer {
     private static final List<Producer> _producers = Collections.synchronizedList( new ArrayList<Producer>() );
 
     static {
-        Runtime.getRuntime().addShutdownHook( new Thread() {
+        KruxStdLib.registerShutdownHook( new ShutdownTask( 100 ) {
             @Override
             public void run() {
                 LOG.info( "Shutting down producers" );
