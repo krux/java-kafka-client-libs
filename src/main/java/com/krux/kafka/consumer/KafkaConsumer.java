@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -88,9 +89,9 @@ public class KafkaConsumer {
 
     public void start() {
 
-        LOG.info( "***********Creating consumers: " );
+        LOG.info( "Creating consumers: " );
         for ( String topic : _topicMap.keySet() ) {
-            LOG.info( "***********Creating consumer for topic : " + topic );
+            LOG.info( "Creating consumer for topic : " + topic );
             Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = _topicConsumers.get( topic ).createMessageStreams(
                     _topicMap );
 
@@ -104,27 +105,32 @@ public class KafkaConsumer {
             // now create an object to consume the messages
             ExecutorService executor = Executors.newFixedThreadPool( _topicMap.get( topic ) );
             _executors.put( topic, executor );
-            LOG.info( "***********Creating executor for topic : " + topic );
+            LOG.info( "Creating executor for topic : " + topic );
             for ( final KafkaStream<byte[], byte[]> stream : streams ) {
-                LOG.info( "***********Creating stream thread for stream " );
+                LOG.info( "Creating stream thread for stream " );
                 executor.submit( new ConsumerThread( stream, topic, _handler ) );
-                LOG.info( "***********Created stream thread for stream " );
+                LOG.info( "Created stream thread for stream " );
             }
         }
 
         KruxStdLib.registerShutdownHook( new ShutdownTask( 50 ) {
             @Override
             public void run() {
+                LOG.warn( "Shutting down kafka consumer threads" );
                 stop();
             }
         } );
     }
 
     public void stop() {
-        LOG.info( "Shutting down consumer thread pools" );
         for ( String key : _topicMap.keySet() ) {
             ExecutorService executor = _executors.get( key );
             executor.shutdownNow();
+            try {
+                executor.awaitTermination( 3, TimeUnit.SECONDS );
+            } catch ( InterruptedException e ) {
+                LOG.error( "Error waiting for consumer thread executors to terminate", e  );
+            }
         }
     }
 

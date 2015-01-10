@@ -32,7 +32,7 @@ public class KafkaProducer {
         KruxStdLib.registerShutdownHook( new ShutdownTask( 100 ) {
             @Override
             public void run() {
-                LOG.info( "Shutting down producers" );
+                LOG.info( "Shutting down kafka producers" );
                 for ( Producer producer : _producers ) {
                     producer.close();
                 }
