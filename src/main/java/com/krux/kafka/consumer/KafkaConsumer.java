@@ -91,7 +91,7 @@ public class KafkaConsumer {
 
         LOG.info( "Creating consumers: " );
         for ( String topic : _topicMap.keySet() ) {
-            LOG.info( "Creating consumer for topic : " + topic );
+            LOG.info( "Creating consumer for topic {}", topic);
             Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = _topicConsumers.get( topic ).createMessageStreams(
                     _topicMap );
 
@@ -109,7 +109,6 @@ public class KafkaConsumer {
             for ( final KafkaStream<byte[], byte[]> stream : streams ) {
                 LOG.info( "Creating stream thread for stream " );
                 executor.submit( new ConsumerThread( stream, topic, _handler ) );
-                LOG.info( "Created stream thread for stream " );
             }
         }
 

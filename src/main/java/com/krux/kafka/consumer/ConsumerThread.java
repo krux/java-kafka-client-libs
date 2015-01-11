@@ -33,19 +33,13 @@ public class ConsumerThread implements Runnable {
             ConsumerIterator<byte[], byte[]> it = _stream.iterator();
             while ( it.hasNext() ) {
                 long start = System.currentTimeMillis();
-                //totalMessages.incrementAndGet();
-
                 byte[] message = it.next().message();
-
-                if ( LOG.isDebugEnabled() ) {
-                    LOG.debug( "message received: " + ( new String( message ) ) );
-                }
+                LOG.debug( "message received: {}", ( new String( message ) ) );
 
                 _handler.onMessage( message );
-
+                
                 long time = System.currentTimeMillis() - start;
                 KruxStdLib.STATSD.time( "message_received." + _topic, time );
-                //KruxStdLib.STATSD.time( "message_received_all", time );
 
             }
         } catch ( Exception e ) {
