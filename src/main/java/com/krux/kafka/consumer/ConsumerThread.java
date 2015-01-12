@@ -1,7 +1,5 @@
 package com.krux.kafka.consumer;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import kafka.consumer.ConsumerIterator;
 import kafka.consumer.KafkaStream;
 
@@ -27,7 +25,7 @@ public class ConsumerThread implements Runnable {
 
     @Override
     public void run() {
-        LOG.info( "Attempting to receive messages" );
+        LOG.info( "Consuming thread started" );
 
         try {
             ConsumerIterator<byte[], byte[]> it = _stream.iterator();
@@ -44,7 +42,7 @@ public class ConsumerThread implements Runnable {
             }
         } catch ( Exception e ) {
             if ( e instanceof InterruptedException ) {
-                LOG.warn( "Consumer group threads interrupted: " + e.getLocalizedMessage() );
+                LOG.warn( "Consumer group threads interrupted, shutting down" );
             } else {
                 LOG.error( "no longer fetching messages", e );
             }
