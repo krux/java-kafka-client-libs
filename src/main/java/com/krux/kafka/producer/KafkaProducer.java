@@ -41,14 +41,14 @@ public class KafkaProducer {
     }
     
     //assumes defaults
-    public KafkaProducer( String topic ) {
-        Properties props = getDefaultProps();
-        props.setProperty( "topic", topic );
-        ProducerConfig config = new ProducerConfig( props );
-        _producer = new Producer<byte[], byte[]>( config );
-        _producers.add( _producer );
-        _topic = topic;
-    }
+//    public KafkaProducer( String topic ) {
+//        Properties props = getDefaultProps();
+//        props.setProperty( "topic", topic );
+//        ProducerConfig config = new ProducerConfig( props );
+//        _producer = new Producer<byte[], byte[]>( config );
+//        _producers.add( _producer );
+//        _topic = topic;
+//    }
 
     private Properties getDefaultProps() {
         OptionParser tempParser = getStandardOptionParser();
