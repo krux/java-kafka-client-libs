@@ -1,6 +1,7 @@
 package com.krux.kafka.helpers;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -23,8 +24,11 @@ public class PropertiesUtils {
             Collection keys = spec.options();
             for ( Object o1 : keys ) {
                 String key = String.valueOf( o1 );
-                LOG.info( key + ": " + options.valueOf( key ) );
-                props.put( key, String.valueOf( options.valueOf( key ) ) );
+                List values = options.valuesOf( key );
+                for ( Object obj : values ) {
+                	LOG.info( key + ": " + String.valueOf( obj ) );
+                	props.put( key, String.valueOf( obj ) );
+                }
             }
         }
         return props;
