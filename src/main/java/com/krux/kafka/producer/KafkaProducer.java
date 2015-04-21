@@ -39,23 +39,6 @@ public class KafkaProducer {
             }
         } );
     }
-    
-    //assumes defaults
-//    public KafkaProducer( String topic ) {
-//        Properties props = getDefaultProps();
-//        props.setProperty( "topic", topic );
-//        ProducerConfig config = new ProducerConfig( props );
-//        _producer = new Producer<byte[], byte[]>( config );
-//        _producers.add( _producer );
-//        _topic = topic;
-//    }
-
-    private Properties getDefaultProps() {
-        OptionParser tempParser = getStandardOptionParser();
-        String[] args = new String[0];
-        OptionSet options = tempParser.parse( args );
-        return PropertiesUtils.createPropertiesFromOptionSpec( options );
-    }
 
     public KafkaProducer( Properties props, String topic ) {
         LOG.warn( "Producer properties: " + props.toString() );
@@ -68,9 +51,6 @@ public class KafkaProducer {
     public KafkaProducer( OptionSet options, String topic ) {
         Properties props = PropertiesUtils.createPropertiesFromOptionSpec( options );
         LOG.warn( "Producer properties: " + props.toString() );
-        // producerProps.put("partitioner.class",
-        // System.getProperty("partitioner.class",
-        // "com.krux.kafka.producer.SimplePartitioner"));
         ProducerConfig config = new ProducerConfig( props );
         _producer = new Producer<byte[], byte[]>( config );
         _producers.add( _producer );
@@ -109,6 +89,7 @@ public class KafkaProducer {
     public static void addStandardOptionsToParser( OptionParser parser ) {
         OptionSpec<String> topic = parser.accepts( "topic", "The topic to which messages will be sent" ).withRequiredArg()
                 .ofType( String.class );
+        
         OptionSpec<String> kafkaBrokers = parser
                 .accepts(
                         "metadata.broker.list",
@@ -118,7 +99,7 @@ public class KafkaProducer {
                 .accepts(
                         "request.required.acks",
                         "The type of ack the broker will return to the client.\n  0, which means that the producer never waits for an acknowledgement\n  1, which means that the producer gets an acknowledgement after the leader replica has received the data.\n  -1, which means that the producer gets an acknowledgement after all in-sync replicas have received the data.\nSee https://kafka.apache.org/documentation.html#producerconfigs" )
-                .withOptionalArg().ofType( Integer.class ).defaultsTo( 1 );
+                .withOptionalArg().ofType( Integer.class ).defaultsTo( 0 );
 
         OptionSpec<String> producerType = parser.accepts( "producer.type", "'sync' or 'async'" ).withOptionalArg()
                 .ofType( String.class ).defaultsTo( "async" );
