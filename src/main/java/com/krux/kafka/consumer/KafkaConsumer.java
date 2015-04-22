@@ -40,6 +40,7 @@ public class KafkaConsumer {
         Map<String, Integer> topicMap = new HashMap<String, Integer>();
 
         for ( String topicThreadCount : topicThreadMappings ) {
+            LOG.warn( "topic-thread: {}", topicThreadCount );
             if ( topicThreadCount.contains( "," ) ) {
                 String[] parts = topicThreadCount.split( "," );
                 topicMap.put( parts[0], Integer.parseInt( parts[1] ) );
@@ -58,16 +59,18 @@ public class KafkaConsumer {
     }
 
     private void setUpConsumer( Map<String, Integer> topicMap, MessageHandler<?> handler, Properties consumerProps ) {
+        
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, ConsumerConnector>();
 
         for ( String topic : topicMap.keySet() ) {
+            Properties consumerPropsCopy = (Properties)consumerProps.clone();
             String normalizedTopic = topic.replace( ".", "_" );
-            String normalizedConsumerGroupId = getGroupId( consumerProps.getProperty( "group.id" ), normalizedTopic );
-            consumerProps.setProperty( "group.id", normalizedConsumerGroupId );
+            String normalizedConsumerGroupId = getGroupId( consumerPropsCopy.getProperty( "group.id" ), normalizedTopic );
+            consumerPropsCopy.setProperty( "group.id", normalizedConsumerGroupId );
             LOG.warn( "Consuming topic '" + topic + "' with group.id '" + normalizedConsumerGroupId + "'" );
-            LOG.warn( consumerProps.toString() );
-            ConsumerConfig topicConfig = new ConsumerConfig( consumerProps );
+            LOG.warn( consumerPropsCopy.toString() );
+            ConsumerConfig topicConfig = new ConsumerConfig( consumerPropsCopy );
             _topicConsumers.put( topic, kafka.consumer.Consumer.createJavaConsumerConnector( topicConfig ) );
         }
         _topicMap = topicMap;
