@@ -95,8 +95,11 @@ public class KafkaConsumer {
         LOG.info( "Creating consumers: " );
         for ( String topic : _topicMap.keySet() ) {
             LOG.info( "Creating consumer for topic {}", topic);
+            Integer i = _topicMap.get(topic);
+            Map<String,Integer> tempMap = new HashMap<>();
+            tempMap.put( topic, i );
             Map<String, List<KafkaStream<byte[], byte[]>>> consumerMap = _topicConsumers.get( topic ).createMessageStreams(
-                    _topicMap );
+                    tempMap );
 
             for ( String key : consumerMap.keySet() ) {
                 LOG.info( "streams key : " + key );

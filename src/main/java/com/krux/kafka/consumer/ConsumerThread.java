@@ -32,8 +32,11 @@ public class ConsumerThread implements Runnable {
             while ( it.hasNext() ) {
                 long start = System.currentTimeMillis();
                 byte[] message = it.next().message();
-                LOG.debug( "message received: {}", ( new String( message ) ) );
-
+                if ( LOG.isDebugEnabled() ) {
+                    String s = new String( message );
+                    LOG.debug( "message received: {}", s );
+                }
+ 
                 _handler.onMessage( message );
                 
                 long time = System.currentTimeMillis() - start;
