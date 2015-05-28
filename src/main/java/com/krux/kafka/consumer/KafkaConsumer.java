@@ -52,6 +52,14 @@ public class KafkaConsumer {
         Properties consumerProps = (Properties) PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
         setUpConsumer( topicMap, handler, consumerProps );
     }
+    
+    public KafkaConsumer( OptionSet options, String topic, int numOfThreads, MessageHandler<?> handler ) {
+        Map<String, Integer> topicMap = new HashMap<String, Integer>();
+        topicMap.put( topic, numOfThreads );
+
+        Properties consumerProps = (Properties) PropertiesUtils.createPropertiesFromOptionSpec( options ).clone();
+        setUpConsumer( topicMap, handler, consumerProps );
+    }
 
     public KafkaConsumer( Properties props, Map<String, Integer> topicMap, MessageHandler<?> handler ) {
         Properties consumerProps = (Properties) props.clone();
