@@ -37,7 +37,7 @@ public class KafkaProducer {
                     try {
                         producer.close();
                     } catch ( Exception e ) {
-                        LOG.error( "Cannot close producer", e );
+                        //LOG.info( "Producer alread closed", e );
                     }
                 }
             }
