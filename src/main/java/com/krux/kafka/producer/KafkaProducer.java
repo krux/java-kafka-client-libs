@@ -34,7 +34,11 @@ public class KafkaProducer {
             public void run() {
                 LOG.info( "Shutting down kafka producers" );
                 for ( Producer producer : _producers ) {
-                    producer.close();
+                    try {
+                        producer.close();
+                    } catch ( Exception e ) {
+                        LOG.error( "Cannot close producer", e );
+                    }
                 }
             }
         } );
@@ -163,6 +167,16 @@ public class KafkaProducer {
         addStandardOptionsToParser( parser );
 
         return parser;
+    }
+    
+    public static void closeAll() {
+        for ( Producer producer : _producers ) {
+            try {
+                producer.close();
+            } catch ( Exception e ) {
+                LOG.error( "Cannot close producer", e );
+            }
+        }
     }
     
 }
