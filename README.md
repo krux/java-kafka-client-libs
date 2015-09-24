@@ -17,7 +17,7 @@ To use, add the following dependency to your pom.xml:
 
 Simple Use
 ----------
-```
+```java
 /* Krux' Kafka consumer client handles threads, stats, status for you */
 
 /* first, implement the MessageHandler interface */
@@ -25,7 +25,7 @@ public interface MessageHandler<T extends Object> {
     public void onMessage( T message );
 }
 ```
-```
+```java
 /* Then instantiate, pass to Krux' Kafka Consumer, .start() */
 final MessageHandler<Object> myHandler = new MySimpleHandler<Object>();
 KafkaConsumer consumer = new KafkaConsumer( options, myHandler );
