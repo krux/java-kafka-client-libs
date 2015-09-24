@@ -1,7 +1,19 @@
-Krux Kafka CLient Library
+Krux Kafka Client Library
 =========================
 
 The Krux Kafka Client library as a simple wrapper for the [Kafka](http://kafka.apache.org)-provided client libraries, both producers and consumers, that's built atop the [Krux Standard Library](https://github.com/krux/java-stdlib) and automatically emits tons of useful usage statistics (such as messages processed rates and processing time histograms) on a per-topic basis.  It also provides a pattern for configuring multiple topics to be handled by a single, thread-safe consumer, a common pattern at Krux.
+
+# Using
+
+To use, add the following dependency to your pom.xml:
+
+```xml
+<dependency>
+  <groupId>com.krux</groupId>
+  <artifactId>kafka-client-libs</artifactId>
+  <version>1.6.9</version>
+</dependency>
+```
 
 Simple Use
 ----------
