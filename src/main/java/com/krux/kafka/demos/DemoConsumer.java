@@ -32,7 +32,7 @@ public class DemoConsumer {
 
         // ensure required cl options are present
         if ( !options.has( "topic-threads" ) || !options.has( "group.id" ) || !options.has( "zookeeper.connect" ) ) {
-            LOG.error( "'--topic-threads', '--group.id', and '--zookeeper.connect' and all required parameters. Exitting!" );
+            LOG.error( "'--topic-threads', '--group.id', and '--zookeeper.connect' are all required parameters. Exiting!" );
             System.exit( -1 );
         }
 
