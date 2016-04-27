@@ -183,5 +183,12 @@ public class KafkaProducer {
 
         return parser;
     }
+
+    public static void shutdownAndClose() {
+        LOG.info( "Shutting down kafka producers" );
+        for (Producer producer : _producers) {
+            producer.close();
+        }
+    }
     
 }
