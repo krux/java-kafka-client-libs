@@ -89,6 +89,15 @@ public class KafkaProducer {
         send( "".getBytes(), message );
     }
 
+    /**
+     * The send is asynchronous and this method will return immediately once the record
+     * has been stored in the buffer of records waiting to be sent.
+     * This allows sending many records in parallel without blocking to wait
+     * for the response after each one.
+     *
+     * @param key key
+     * @param message value
+     */
     public void send( byte[] key, byte[] message ) {
         long start = System.currentTimeMillis();
         LOG.debug( "Sending message to {}", _topic );
@@ -182,6 +191,23 @@ public class KafkaProducer {
         addStandardOptionsToParser( parser );
 
         return parser;
+    }
+
+    /**
+     * Close all the producers. This method blocks until all in-flight requests complete.
+     */
+    public static void shutdownAndCloseAll() {
+        LOG.info( "Shutting down kafka producers" );
+        for (Producer producer : _producers) {
+            producer.close();
+        }
+    }
+
+    /**
+     * Close this producer. This method blocks until all in-flight requests complete.
+     */
+    public void close() {
+        _producer.close();
     }
     
 }
