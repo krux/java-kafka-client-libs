@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.krux</groupId>
   <artifactId>kafka-client-libs</artifactId>
-  <version>1.6.9.1</version>
+  <version>1.6.9.8</version>
   
     <build>
         <plugins>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>com.krux</groupId>
             <artifactId>krux-stdlib</artifactId>
-            <version>1.7.2</version>
+            <version>1.7.6</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
