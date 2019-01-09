@@ -1,24 +1,16 @@
 package com.krux.kafka.consumer.simple;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
-import kafka.javaapi.FetchResponse;
-import kafka.javaapi.OffsetResponse;
-import kafka.javaapi.PartitionMetadata;
-import kafka.javaapi.TopicMetadata;
-import kafka.javaapi.TopicMetadataRequest;
+import kafka.javaapi.*;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
+
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class KafkaLowLevelConsumer {
 
@@ -177,7 +169,7 @@ public class KafkaLowLevelConsumer {
         }
         if ( returnMetaData != null ) {
             m_replicaBrokers.clear();
-            for ( kafka.cluster.Broker replica : returnMetaData.replicas() ) {
+            for ( kafka.cluster.BrokerEndPoint replica : returnMetaData.replicas() ) {
                 m_replicaBrokers.add( replica.host() );
             }
         }
