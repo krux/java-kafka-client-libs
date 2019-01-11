@@ -1,51 +1,69 @@
 package com.krux.kafka.consumer;
 
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-
+import com.krux.stdlib.KruxStdLib;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.krux.stdlib.KruxStdLib;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConsumerThread implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger( ConsumerThread.class );
-    //private static AtomicLong totalMessages = new AtomicLong( 0 );
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    private final KafkaStream<byte[], byte[]> _stream;
     private final MessageHandler<byte[]> _handler;
+    private final org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> _consumer;
     private String _topic;
 
-    public ConsumerThread( KafkaStream<byte[], byte[]> stream, String topic, MessageHandler handler ) {
-        _stream = stream;
+    public ConsumerThread(org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer, String topic, MessageHandler handler ) {
+        _consumer = consumer;
         _handler = handler;
         _topic = topic;
     }
 
     @Override
     public void run() {
-        LOG.info( "Consuming thread started" );
-
         try {
-            ConsumerIterator<byte[], byte[]> it = _stream.iterator();
-            while ( it.hasNext() ) {
-                long start = System.currentTimeMillis();
-                byte[] message = it.next().message();
-                LOG.debug( "message received: {}", ( new String( message ) ) );
+            // Subscribe to the topic
+            _consumer.subscribe( Arrays.asList(_topic) );
+            LOG.info( "Consuming thread subscribed - " + _topic);
+            while (!closed.get()) {
+                // Poll for messages in queue
+                ConsumerRecords<byte[], byte[]> records = _consumer.poll(100);
+                for (ConsumerRecord<byte[], byte[]> record : records) {
 
-                _handler.onMessage( message );
-                
-                long time = System.currentTimeMillis() - start;
-                KruxStdLib.STATSD.time( "message_received." + _topic, time );
+                    long start = System.currentTimeMillis();
+                    byte[] message = record.value();
+                    LOG.debug("message received: {}", (new String(message)));
 
+                    _handler.onMessage(message);
+
+                    long time = System.currentTimeMillis() - start;
+                    KruxStdLib.STATSD.time("message_received." + _topic, time);
+                }
             }
-        } catch ( Exception e ) {
-            if ( e instanceof InterruptedException ) {
-                LOG.warn( "Consumer group threads interrupted, shutting down" );
-            } else {
-                LOG.error( "no longer fetching messages", e );
-            }
+        } catch (WakeupException e) {
+            // Ignore exception if closing
+            if (!closed.get()) throw e;
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            LOG.error("Consumer failure: " + sw.toString());
+        } finally {
+            LOG.warn("Consumer shutting down");
+            _consumer.close();
         }
+    }
+
+    // Shutdown hook which can be called from a separate thread
+    public void shutdown() {
+        closed.set(true);
+        _consumer.wakeup();
     }
 }
