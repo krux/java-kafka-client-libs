@@ -55,9 +55,7 @@ public class ConsumerThread implements Runnable {
             // Ignore exception if closing
             if (!closed.get()) throw e;
         } catch (Exception e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            LOG.error("Consumer failure: " + sw.toString());
+            LOG.error("Consumer failure:", e);
         } finally {
             LOG.warn("Consumer shutting down");
             _consumer.close();
