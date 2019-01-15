@@ -95,7 +95,6 @@ public class KafkaConsumer {
         for ( String topic : _topicMap.keySet() ) {
             LOG.info( "Creating consumers for topic {}", topic);
             List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>> consumers =_topicConsumers.get( topic );
-
             LOG.info( "consumers.size() : " + consumers.size() );
 
             // now create an object to consume the messages
