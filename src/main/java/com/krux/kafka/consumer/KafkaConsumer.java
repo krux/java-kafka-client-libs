@@ -54,8 +54,8 @@ public class KafkaConsumer {
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>>>();
 
-        // Get consumer poll inteval from CLI options
-        _consumerPollTimeout = (Long) consumerProps.get("consumer.poll.timeout");
+        // Get consumer poll interval from CLI options
+        _consumerPollTimeout = Long.parseLong(consumerProps.getProperty("consumer.poll.timeout"));
         // Remove the consumer poll interval so all properties can be passed to KafkaConsumer() clas
         consumerProps.remove("consumer.poll.timeout");
 
