@@ -24,6 +24,7 @@ public class KafkaConsumer {
     private Map<String, List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>>> _topicConsumers;
     private MessageHandler<?> _handler;
     Map<String, ExecutorService> _executors;
+    Long _consumerPollTimeout;
 
     public KafkaConsumer( OptionSet options, MessageHandler<?> handler ) {
 
@@ -52,6 +53,11 @@ public class KafkaConsumer {
     private void setUpConsumer( Map<String, Integer> topicMap, MessageHandler<?> handler, Properties consumerProps ) {
         _executors = new HashMap<String, ExecutorService>();
         _topicConsumers = new HashMap<String, List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>>>();
+
+        // Get consumer poll inteval from CLI options
+        _consumerPollTimeout = (Long) consumerProps.get("consumer.poll.timeout");
+        // Remove the consumer poll interval so all properties can be passed to KafkaConsumer() clas
+        consumerProps.remove("consumer.poll.timeout");
 
         for ( String topic : topicMap.keySet() ) {
             String normalizedTopic = topic.replace( ".", "_" );
@@ -96,9 +102,9 @@ public class KafkaConsumer {
             ExecutorService executor = Executors.newFixedThreadPool( _topicMap.get( topic ) );
             _executors.put( topic, executor );
             LOG.info( "Creating executor for topic : " + topic );
-            for ( org.apache.kafka.clients.consumer.KafkaConsumer consumer : consumers ) {
-                LOG.info( "Subscribe consumer for topic : " + topic );
-                executor.submit( new ConsumerThread( consumer, topic, _handler ) );
+            for ( org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer : consumers ) {
+                LOG.info( "Subscribing consumer for topic : " + topic );
+                executor.submit( new ConsumerThread( consumer, _consumerPollTimeout, topic, _handler ) );
             }
         }
 
@@ -133,6 +139,12 @@ public class KafkaConsumer {
                         "bootstrap.servers",
                         "This is for bootstrapping and the producer will only use it for getting metadata (topics, partitions and replicas). The socket connections for sending the actual data will be established based on the broker information returned in the metadata. The format is host1:port1,host2:port2, and the list can be a subset of brokers or a VIP pointing to a subset of brokers." )
                 .withOptionalArg().ofType( String.class ).defaultsTo( "localhost:9092" );
+
+        OptionSpec<Long> consumerPollTimeout = parser
+                .accepts(
+                        "consumer.poll.timeout",
+                        "The amount of time in milliseconds before timeout for each poll to the kafka servers" )
+                .withOptionalArg().ofType( Long.class ).defaultsTo( 100L );
 
         OptionSpec<String> keyDeserializer = parser
                 .accepts("key.deserializer",

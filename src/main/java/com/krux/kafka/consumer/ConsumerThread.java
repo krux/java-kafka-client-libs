@@ -20,11 +20,14 @@ public class ConsumerThread implements Runnable {
     private final MessageHandler<byte[]> _handler;
     private final org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> _consumer;
     private String _topic;
+    private Long _consumerPollTimeout;
 
-    public ConsumerThread(org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer, String topic, MessageHandler handler ) {
+    public ConsumerThread(org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer,
+                          Long consumerPollTimeout, String topic, MessageHandler handler ) {
         _consumer = consumer;
-        _handler = handler;
+        _consumerPollTimeout = consumerPollTimeout;
         _topic = topic;
+        _handler = handler;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class ConsumerThread implements Runnable {
             LOG.info( "Consuming thread subscribed - " + _topic);
             while (!closed.get()) {
                 // Poll for messages in queue
-                ConsumerRecords<byte[], byte[]> records = _consumer.poll(100);
+                ConsumerRecords<byte[], byte[]> records = _consumer.poll(_consumerPollTimeout);
                 for (ConsumerRecord<byte[], byte[]> record : records) {
 
                     long start = System.currentTimeMillis();
