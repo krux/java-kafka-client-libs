@@ -45,6 +45,8 @@ public class KafkaProducer {
 
     public KafkaProducer( Properties props, String topic ) {
         LOG.warn( "Producer properties: " + props.toString() );
+        // Required to allow an application to run both consumer and producer libraries at the same time
+        props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
         _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
         _topic = topic;
@@ -52,6 +54,8 @@ public class KafkaProducer {
 
     public KafkaProducer( OptionSet options, String topic ) {
         Properties props = PropertiesUtils.createPropertiesFromOptionSpec( options );
+        // Required to allow an application to run both consumer and producer libraries at the same time
+        props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
         LOG.warn( "Producer properties: " + props.toString() );
         _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
@@ -109,7 +113,7 @@ public class KafkaProducer {
 
         OptionSpec<String> kafkaBrokers = parser
                 .accepts(
-                        "bootstrap.servers",
+                        "producer.bootstrap.servers",
                         "A list of host/port pairs to use for establishing the initial connection to the Kafka cluster. The client will make use of all servers irrespective of which servers are specified here for bootstrapping—this list only impacts the initial hosts used to discover the full set of servers. This list should be in the form host1:port1,host2:port2,.... Since these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down)." )
                 .withOptionalArg().ofType( String.class ).defaultsTo( "localhost:9092" );
         OptionSpec<Integer> kafkaAckType = parser
