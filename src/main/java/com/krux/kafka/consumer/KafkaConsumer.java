@@ -58,6 +58,8 @@ public class KafkaConsumer {
         _consumerPollTimeout = Long.parseLong(consumerProps.getProperty("consumer.poll.timeout"));
         // Remove the consumer poll interval so all properties can be passed to KafkaConsumer() clas
         consumerProps.remove("consumer.poll.timeout");
+        // Required to allow an application to run both consumer and producer libraries at the same time
+        consumerProps.setProperty("bootstrap.servers", consumerProps.getProperty("consumer.bootstrap.servers"));
 
         for ( String topic : topicMap.keySet() ) {
             String normalizedTopic = topic.replace( ".", "_" );
@@ -135,7 +137,7 @@ public class KafkaConsumer {
 
         OptionSpec<String> kafkaBrokers = parser
                 .accepts(
-                        "bootstrap.servers",
+                        "consumer.bootstrap.servers",
                         "This is for bootstrapping and the producer will only use it for getting metadata (topics, partitions and replicas). The socket connections for sending the actual data will be established based on the broker information returned in the metadata. The format is host1:port1,host2:port2, and the list can be a subset of brokers or a VIP pointing to a subset of brokers." )
                 .withOptionalArg().ofType( String.class ).defaultsTo( "localhost:9092" );
 
