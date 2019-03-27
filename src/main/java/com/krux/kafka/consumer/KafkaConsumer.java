@@ -70,6 +70,10 @@ public class KafkaConsumer {
             List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>> consumers = new ArrayList<>();
             // Read thread count for topic and create that many consumers
             for (int i = 0; i < topicMap.get(topic); i++) {
+                // An id string to pass to the server when making requests. The purpose of this is to be able to track the
+                // source of requests beyond just ip/port by allowing a logical application name to be included in server-side
+                // request logging.
+                consumerProps.setProperty("client.id", normalizedConsumerGroupId + "_" + i);
                 consumers.add(new org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>( consumerProps ));
             }
             _topicConsumers.put( topic, consumers);
