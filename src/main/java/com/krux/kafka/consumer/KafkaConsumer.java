@@ -24,7 +24,7 @@ public class KafkaConsumer {
     private Map<String, List<org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]>>> _topicConsumers;
     private MessageHandler<?> _handler;
     Map<String, ExecutorService> _executors;
-    Long _consumerPollTimeout;
+    long _consumerPollTimeout;
 
     public KafkaConsumer( OptionSet options, MessageHandler<?> handler ) {
 
@@ -113,7 +113,7 @@ public class KafkaConsumer {
             }
         }
 
-        KruxStdLib.registerShutdownHook( new ShutdownTask( 50 ) {
+        KruxStdLib.get().registerShutdownHook( new ShutdownTask( 50 ) {
             @Override
             public void run() {
                 LOG.warn( "Shutting down kafka consumer threads" );

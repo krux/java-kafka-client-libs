@@ -1,6 +1,8 @@
 package com.krux.kafka.consumer;
 
 import com.krux.stdlib.KruxStdLib;
+import com.krux.stdlib.statsd.StatsdClient;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.errors.WakeupException;
@@ -18,14 +20,30 @@ public class ConsumerThread implements Runnable {
     private final MessageHandler<byte[]> _handler;
     private final org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> _consumer;
     private String _topic;
-    private Long _consumerPollTimeout;
+    private long _consumerPollTimeout;
+    private StatsdClient _statsd;
 
-    public ConsumerThread(org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer,
-                          Long consumerPollTimeout, String topic, MessageHandler handler ) {
+    public ConsumerThread(
+            org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer,
+            long consumerPollTimeout, 
+            String topic, 
+            MessageHandler handler
+        ) {
+        this(consumer, consumerPollTimeout, topic, handler, KruxStdLib.get().getStatsdClient());
+    }
+
+    public ConsumerThread(
+            org.apache.kafka.clients.consumer.KafkaConsumer<byte[], byte[]> consumer,
+            long consumerPollTimeout, 
+            String topic, 
+            MessageHandler handler,
+            StatsdClient statsd
+        ) {
         _consumer = consumer;
         _consumerPollTimeout = consumerPollTimeout;
         _topic = topic;
         _handler = handler;
+        _statsd = statsd;
     }
 
     @Override
@@ -46,7 +64,7 @@ public class ConsumerThread implements Runnable {
                     _handler.onMessage(message);
 
                     long time = System.currentTimeMillis() - start;
-                    KruxStdLib.STATSD.time("message_received." + _topic, time);
+                    _statsd.time("message_received." + _topic, time);
                 }
             }
         } catch (WakeupException e) {
