@@ -1,54 +1,47 @@
 package com.krux.kafka.producer;
 
+import com.krux.kafka.helpers.PropertiesUtils;
+import com.krux.stdlib.KruxStdLib;
+import com.krux.stdlib.shutdown.ShutdownTask;
+import com.krux.stdlib.statsd.StatsdClient;
+
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.krux.kafka.helpers.PropertiesUtils;
-import com.krux.stdlib.KruxStdLib;
-import com.krux.stdlib.shutdown.ShutdownTask;
-
 public class KafkaProducer {
 
     private static final Logger LOG = LoggerFactory.getLogger( KafkaProducer.class );
 
-    private final Producer<byte[], byte[]> _producer;
+    private final org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]> _producer;
     private final String _topic;
+    private final StatsdClient _statsd;
 
-    private static final List<Producer> _producers = Collections.synchronizedList( new ArrayList<Producer>() );
+    private static final List<org.apache.kafka.clients.producer.KafkaProducer> _producers = Collections.synchronizedList( new ArrayList<org.apache.kafka.clients.producer.KafkaProducer>() );
+    private static volatile boolean initialized = false;
 
-    static {
-        KruxStdLib.registerShutdownHook( new ShutdownTask( 100 ) {
-            @Override
-            public void run() {
-                LOG.info( "Shutting down kafka producers" );
-                for ( Producer producer : _producers ) {
-                    producer.close();
+    private static void initShutdownHook() {
+        if (!initialized) {
+            KruxStdLib.get().registerShutdownHook( new ShutdownTask( 100 ) {
+                @Override
+                public void run() {
+                    LOG.info( "Shutting down kafka producers" );
+                    for ( org.apache.kafka.clients.producer.KafkaProducer producer : _producers ) {
+                        producer.close();
+                    }
                 }
-            }
-        } );
+            } );
+            initialized = true;
+        }
     }
-    
-    //assumes defaults
-//    public KafkaProducer( String topic ) {
-//        Properties props = getDefaultProps();
-//        props.setProperty( "topic", topic );
-//        ProducerConfig config = new ProducerConfig( props );
-//        _producer = new Producer<byte[], byte[]>( config );
-//        _producers.add( _producer );
-//        _topic = topic;
-//    }
 
     private Properties getDefaultProps() {
         OptionParser tempParser = getStandardOptionParser();
@@ -58,23 +51,34 @@ public class KafkaProducer {
     }
 
     public KafkaProducer( Properties props, String topic ) {
+        this(props, topic, KruxStdLib.get().getStatsdClient());
+    }
+
+    public KafkaProducer( Properties props, String topic, StatsdClient statsd ) {
         LOG.warn( "Producer properties: " + props.toString() );
-        ProducerConfig config = new ProducerConfig( props );
-        _producer = new Producer<byte[], byte[]>( config );
+        // Required to allow an application to run both consumer and producer libraries at the same time
+        props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
+        _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
         _topic = topic;
+        _statsd = statsd;
+        initShutdownHook();
     }
 
     public KafkaProducer( OptionSet options, String topic ) {
+        this(options, topic, KruxStdLib.get().getStatsdClient());
+    }
+
+    public KafkaProducer( OptionSet options, String topic, StatsdClient statsd ) {
         Properties props = PropertiesUtils.createPropertiesFromOptionSpec( options );
+        // Required to allow an application to run both consumer and producer libraries at the same time
+        props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
         LOG.warn( "Producer properties: " + props.toString() );
-        // producerProps.put("partitioner.class",
-        // System.getProperty("partitioner.class",
-        // "com.krux.kafka.producer.SimplePartitioner"));
-        ProducerConfig config = new ProducerConfig( props );
-        _producer = new Producer<byte[], byte[]>( config );
+        _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
         _topic = topic;
+        _statsd = statsd;
+        initShutdownHook();
     }
 
     public void send( String message ) {
@@ -101,15 +105,12 @@ public class KafkaProducer {
     public void send( byte[] key, byte[] message ) {
         long start = System.currentTimeMillis();
         LOG.debug( "Sending message to {}", _topic );
-        KeyedMessage<byte[], byte[]> data = new KeyedMessage<byte[], byte[]>( _topic, key, message );
+        ProducerRecord<byte[], byte[]> data = new ProducerRecord<byte[], byte[]>( _topic, key, message );
         _producer.send( data );
         long time = System.currentTimeMillis() - start;
         try {
-            if ( KruxStdLib.STATSD == null ) {
-                LOG.error( "WTF? STATSD is null?!" );
-            }
-            KruxStdLib.STATSD.time( "message_sent." + _topic, time );
-            KruxStdLib.STATSD.time( "message_sent_all", time );
+            _statsd.time( "message_sent." + _topic, time );
+            _statsd.time( "message_sent_all", time );
         } catch ( Exception e ) {
             LOG.error( "cannot send statsd stats", e );
         }
@@ -118,20 +119,30 @@ public class KafkaProducer {
     public static void addStandardOptionsToParser( OptionParser parser ) {
         OptionSpec<String> topic = parser.accepts( "topic", "The topic to which messages will be sent" ).withRequiredArg()
                 .ofType( String.class );
+
+        OptionSpec<String> keySerializer = parser
+                .accepts("key.serializer",
+                        "Serializer class for key that implements the org.apache.kafka.common.serialization.Serializer interface.")
+                .withOptionalArg().ofType( String.class ).defaultsTo( "org.apache.kafka.common.serialization.ByteArraySerializer" );
+
+        OptionSpec<String> valueSerializer = parser
+                .accepts("value.serializer",
+                        "Serializer class for value that implements the org.apache.kafka.common.serialization.Serializer interface.")
+                .withOptionalArg().ofType( String.class ).defaultsTo( "org.apache.kafka.common.serialization.ByteArraySerializer" );
+
         OptionSpec<String> kafkaBrokers = parser
                 .accepts(
-                        "metadata.broker.list",
-                        "This is for bootstrapping and the producer will only use it for getting metadata (topics, partitions and replicas). The socket connections for sending the actual data will be established based on the broker information returned in the metadata. The format is host1:port1,host2:port2, and the list can be a subset of brokers or a VIP pointing to a subset of brokers." )
+                        "producer.bootstrap.servers",
+                        "A list of host/port pairs to use for establishing the initial connection to the Kafka cluster. The client will make use of all servers irrespective of which servers are specified here for bootstrapping—this list only impacts the initial hosts used to discover the full set of servers. This list should be in the form host1:port1,host2:port2,.... Since these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down)." )
                 .withOptionalArg().ofType( String.class ).defaultsTo( "localhost:9092" );
         OptionSpec<Integer> kafkaAckType = parser
                 .accepts(
-                        "request.required.acks",
-                        "The type of ack the broker will return to the client.\n  0, which means that the producer never waits for an acknowledgement\n  1, which means that the producer gets an acknowledgement after the leader replica has received the data.\n  -1, which means that the producer gets an acknowledgement after all in-sync replicas have received the data.\nSee https://kafka.apache.org/documentation.html#producerconfigs" )
+                        "acks",
+                        "The number of acknowledgments the producer requires the leader to have received before considering a request complete. This controls the durability of records that are sent. The following settings are allowed:\n" +
+                                "acks=0 If set to zero then the producer will not wait for any acknowledgment from the server at all. The record will be immediately added to the socket buffer and considered sent. No guarantee can be made that the server has received the record in this case, and the retries configuration will not take effect (as the client won't generally know of any failures). The offset given back for each record will always be set to -1.\n" +
+                                "acks=1 This will mean the leader will write the record to its local log but will respond without awaiting full acknowledgement from all followers. In this case should the leader fail immediately after acknowledging the record but before the followers have replicated it then the record will be lost.\n" +
+                                "acks=all This means the leader will wait for the full set of in-sync replicas to acknowledge the record. This guarantees that the record will not be lost as long as at least one in-sync replica remains alive. This is the strongest available guarantee. This is equivalent to the acks=-1 setting." )
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 1 );
-
-        OptionSpec<String> producerType = parser.accepts( "producer.type", "'sync' or 'async'" ).withOptionalArg()
-                .ofType( String.class ).defaultsTo( "async" );
-
         OptionSpec<Integer> kafkaRequestTimeoutMs = parser
                 .accepts(
                         "request.timeout.ms",
@@ -139,12 +150,12 @@ public class KafkaProducer {
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 10000 );
         OptionSpec<String> kafkaCompressionType = parser
                 .accepts(
-                        "compression.codec",
-                        "This parameter allows you to specify the compression codec for all data generated by this producer. Valid values are \"none\", \"gzip\" and \"snappy\"." )
+                        "compression.type",
+                        "The compression type for all data generated by the producer. The default is none (i.e. no compression). Valid values are none, gzip, snappy, lz4, or zstd. Compression is of full batches of data, so the efficacy of batching will also impact the compression ratio (more batching means better compression)." )
                 .withOptionalArg().ofType( String.class ).defaultsTo( "none" );
         OptionSpec<Integer> messageSendMaxRetries = parser
                 .accepts(
-                        "message.send.max.retries",
+                        "retries",
                         "This property will cause the producer to automatically retry a failed send request. This property specifies the number of retries when such failures occur. Note that setting a non-zero value here can lead to duplicates in the case of network errors that cause a message to be sent but the acknowledgement to be lost." )
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 3 );
         OptionSpec<Integer> retryBackoffMs = parser
@@ -152,25 +163,15 @@ public class KafkaProducer {
                         "retry.backoff.ms",
                         "Before each retry, the producer refreshes the metadata of relevant topics to see if a new leader has been elected. Since leader election takes a bit of time, this property specifies the amount of time that the producer waits before refreshing the metadata." )
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 100 );
-        OptionSpec<Integer> queueBufferingMaxMs = parser
-                .accepts(
-                        "queue.buffering.max.ms",
-                        "Maximum time to buffer data when using async mode. For example a setting of 100 will try to batch together 100ms of messages to send at once. This will improve throughput but adds message delivery latency due to the buffering." )
-                .withOptionalArg().ofType( Integer.class ).defaultsTo( 500 );
-        OptionSpec<Integer> queueBufferingMaxMessages = parser
-                .accepts(
-                        "queue.buffering.max.messages",
-                        "The maximum number of unsent messages that can be queued up the producer when using async mode before either the producer must be blocked or data must be dropped." )
-                .withOptionalArg().ofType( Integer.class ).defaultsTo( 10000 );
-        OptionSpec<Integer> queueEnqueTimeoutMs = parser
-                .accepts(
-                        "queue.enqueue.timeout.ms",
-                        "The amount of time to block before dropping messages when running in async mode and the buffer has reached queue.buffering.max.messages. If set to 0 events will be enqueued immediately or dropped if the queue is full (the producer send call will never block). If set to -1 the producer will block indefinitely and never willingly drop a send." )
-                .withOptionalArg().ofType( Integer.class ).defaultsTo( -1 );
         OptionSpec<Integer> batchNumMessages = parser
                 .accepts(
-                        "batch.num.messages",
-                        "The number of messages to send in one batch when using async mode. The producer will wait until either this number of messages are ready to send or queue.buffer.max.ms is reached." )
+                        "batch.size",
+                        "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes.\n" +
+                                "No attempt will be made to batch records larger than this size.\n" +
+                                "\n" +
+                                "Requests sent to brokers will contain multiple batches, one for each partition with data available to be sent.\n" +
+                                "\n" +
+                                "A small batch size will make batching less common and may reduce throughput (a batch size of zero will disable batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a buffer of the specified batch size in anticipation of additional records." )
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 2000 );
         OptionSpec<String> clientId = parser
                 .accepts(
@@ -179,10 +180,6 @@ public class KafkaProducer {
                 .withOptionalArg().ofType( String.class ).defaultsTo( "" );
         OptionSpec<Integer> sendBufferBytes = parser.accepts( "send.buffer.bytes", "Socket write buffer size" )
                 .withOptionalArg().ofType( Integer.class ).defaultsTo( 100 * 1024 );
-        OptionSpec<String> partitionClass = parser
-                .accepts( "partitioner.class", "The partitioner class for partitioning messages amongst sub-topics. " )
-                .withOptionalArg().ofType( String.class ).defaultsTo( "com.krux.kafka.producer.SimplePartitioner" );
-
     }
 
     public static OptionParser getStandardOptionParser() {
@@ -191,23 +188,6 @@ public class KafkaProducer {
         addStandardOptionsToParser( parser );
 
         return parser;
-    }
-
-    /**
-     * Close all the producers. This method blocks until all in-flight requests complete.
-     */
-    public static void shutdownAndCloseAll() {
-        LOG.info( "Shutting down kafka producers" );
-        for (Producer producer : _producers) {
-            producer.close();
-        }
-    }
-
-    /**
-     * Close this producer. This method blocks until all in-flight requests complete.
-     */
-    public void close() {
-        _producer.close();
     }
     
 }

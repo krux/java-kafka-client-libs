@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.krux</groupId>
   <artifactId>kafka-client-libs</artifactId>
-  <version>1.6.9.8</version>
+  <version>3.0.0</version>
   
     <build>
         <plugins>
@@ -13,7 +13,6 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
-                    <testClassesDirectory>target/test-classes/</testClassesDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -102,13 +101,13 @@
         </dependency>
         <dependency>
             <groupId>com.krux</groupId>
-            <artifactId>krux-stdlib</artifactId>
-            <version>1.7.6</version>
+            <artifactId>krux-stdlib-monitoring</artifactId>
+            <version>5.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.9.2</artifactId>
-            <version>0.8.1.1</version>
+            <artifactId>kafka_2.12</artifactId>
+            <version>1.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.jms</groupId>
@@ -123,6 +122,11 @@
                     <artifactId>jmxtools</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
