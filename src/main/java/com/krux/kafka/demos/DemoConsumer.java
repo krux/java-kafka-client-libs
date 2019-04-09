@@ -27,8 +27,9 @@ public class DemoConsumer {
         // expose all kafka consumer config params to the cli
         KafkaConsumer.addStandardOptionsToParser( parser );
 
-        KruxStdLib.setOptionParser( parser );
-        OptionSet options = KruxStdLib.initialize( args );
+        KruxStdLib stdlib = new KruxStdLib();
+        stdlib.setOptionParser( parser );
+        OptionSet options = stdlib.parseAndInitialize( args );
 
         // ensure required cl options are present
         if ( !options.has( "topic-threads" ) || !options.has( "group.id" ) || !options.has( "zookeeper.connect" ) ) {

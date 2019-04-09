@@ -3,6 +3,8 @@ package com.krux.kafka.producer;
 import com.krux.kafka.helpers.PropertiesUtils;
 import com.krux.stdlib.KruxStdLib;
 import com.krux.stdlib.shutdown.ShutdownTask;
+import com.krux.stdlib.statsd.StatsdClient;
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -21,19 +23,24 @@ public class KafkaProducer {
 
     private final org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]> _producer;
     private final String _topic;
+    private final StatsdClient _statsd;
 
     private static final List<org.apache.kafka.clients.producer.KafkaProducer> _producers = Collections.synchronizedList( new ArrayList<org.apache.kafka.clients.producer.KafkaProducer>() );
+    private static volatile boolean initialized = false;
 
-    static {
-        KruxStdLib.registerShutdownHook( new ShutdownTask( 100 ) {
-            @Override
-            public void run() {
-                LOG.info( "Shutting down kafka producers" );
-                for ( org.apache.kafka.clients.producer.KafkaProducer producer : _producers ) {
-                    producer.close();
+    private static void initShutdownHook() {
+        if (!initialized) {
+            KruxStdLib.get().registerShutdownHook( new ShutdownTask( 100 ) {
+                @Override
+                public void run() {
+                    LOG.info( "Shutting down kafka producers" );
+                    for ( org.apache.kafka.clients.producer.KafkaProducer producer : _producers ) {
+                        producer.close();
+                    }
                 }
-            }
-        } );
+            } );
+            initialized = true;
+        }
     }
 
     private Properties getDefaultProps() {
@@ -44,15 +51,25 @@ public class KafkaProducer {
     }
 
     public KafkaProducer( Properties props, String topic ) {
+        this(props, topic, KruxStdLib.get().getStatsdClient());
+    }
+
+    public KafkaProducer( Properties props, String topic, StatsdClient statsd ) {
         LOG.warn( "Producer properties: " + props.toString() );
         // Required to allow an application to run both consumer and producer libraries at the same time
         props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
         _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
         _topic = topic;
+        _statsd = statsd;
+        initShutdownHook();
     }
 
     public KafkaProducer( OptionSet options, String topic ) {
+        this(options, topic, KruxStdLib.get().getStatsdClient());
+    }
+
+    public KafkaProducer( OptionSet options, String topic, StatsdClient statsd ) {
         Properties props = PropertiesUtils.createPropertiesFromOptionSpec( options );
         // Required to allow an application to run both consumer and producer libraries at the same time
         props.setProperty("bootstrap.servers", props.getProperty("producer.bootstrap.servers"));
@@ -60,6 +77,8 @@ public class KafkaProducer {
         _producer = new org.apache.kafka.clients.producer.KafkaProducer<byte[], byte[]>( props );
         _producers.add( _producer );
         _topic = topic;
+        _statsd = statsd;
+        initShutdownHook();
     }
 
     public void send( String message ) {
@@ -90,8 +109,8 @@ public class KafkaProducer {
         _producer.send( data );
         long time = System.currentTimeMillis() - start;
         try {
-            KruxStdLib.STATSD.time( "message_sent." + _topic, time );
-            KruxStdLib.STATSD.time( "message_sent_all", time );
+            _statsd.time( "message_sent." + _topic, time );
+            _statsd.time( "message_sent_all", time );
         } catch ( Exception e ) {
             LOG.error( "cannot send statsd stats", e );
         }

@@ -30,8 +30,9 @@ public class DemoProducer {
 
         // give parser to KruxStdLib so it can add our params to the reserved
         // list
-        KruxStdLib.setOptionParser( parser );
-        OptionSet options = KruxStdLib.initialize( args );
+        KruxStdLib stdlib = new KruxStdLib();
+        stdlib.setOptionParser( parser );
+        OptionSet options = stdlib.parseAndInitialize( args );
 
         // make sure we have what we need
         if ( !options.has( "topic" ) || !options.has( "metadata.broker.list" ) || !options.has( "num-of-messages-to-send" ) ) {
