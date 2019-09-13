@@ -28,7 +28,7 @@ public class KafkaProducer {
     private static final List<org.apache.kafka.clients.producer.KafkaProducer> _producers = Collections.synchronizedList( new ArrayList<org.apache.kafka.clients.producer.KafkaProducer>() );
     private static volatile boolean initialized = false;
 
-    private static void initShutdownHook() {
+    private void initShutdownHook() {
         if (!initialized) {
             KruxStdLib.get().registerShutdownHook( new ShutdownTask( 100 ) {
                 @Override
