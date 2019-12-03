@@ -105,7 +105,7 @@ public class KafkaProducer {
     public void send( byte[] key, byte[] message ) {
         long start = System.currentTimeMillis();
         LOG.debug( "Sending message to {}", _topic );
-        ProducerRecord<byte[], byte[]> data = new ProducerRecord<byte[], byte[]>( _topic, key, message );
+        ProducerRecord<byte[], byte[]> data = new ProducerRecord<byte[], byte[]>( _topic, key.length == 0 ? null : key, message );
         _producer.send( data );
         long time = System.currentTimeMillis() - start;
         try {
