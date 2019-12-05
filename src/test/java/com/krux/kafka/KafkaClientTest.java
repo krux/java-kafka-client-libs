@@ -54,8 +54,8 @@ public class KafkaClientTest {
             RecordMetadata message2 = producer.send("Testing message2").get();
             RecordMetadata message3 = producer.send("Testing message3").get();
             System.out.println("Message 1 was send to partition " + message1.partition());
-            System.out.println("Message 2 was send to partition " +message2.partition());
-            System.out.println("Message 3 was send to partition " +message3.partition());
+            System.out.println("Message 2 was send to partition " + message2.partition());
+            System.out.println("Message 3 was send to partition " + message3.partition());
 
             Set<String> hash_Set = new HashSet<String>();
             hash_Set.add(Integer.toString(message1.partition()));
