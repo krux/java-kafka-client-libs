@@ -8,7 +8,9 @@ import com.krux.stdlib.statsd.StatsdClient;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
+import kafka.api.ProducerResponseStatus;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 public class KafkaProducer {
 
@@ -81,16 +84,16 @@ public class KafkaProducer {
         initShutdownHook();
     }
 
-    public void send( String message ) {
-        send( "", message );
+    public Future<RecordMetadata> send( String message ) {
+        return send( "", message );
     }
 
-    public void send( String key, String message ) {
-        send( key.getBytes(), message.getBytes() );
+    public Future<RecordMetadata> send( String key, String message ) {
+        return send( key.getBytes(), message.getBytes() );
     }
 
-    public void send( byte[] message ) {
-        send( "".getBytes(), message );
+    public Future<RecordMetadata> send( byte[] message ) {
+        return send( "".getBytes(), message );
     }
 
     /**
@@ -102,11 +105,11 @@ public class KafkaProducer {
      * @param key key
      * @param message value
      */
-    public void send( byte[] key, byte[] message ) {
+    public Future<RecordMetadata> send( byte[] key, byte[] message ) {
         long start = System.currentTimeMillis();
         LOG.debug( "Sending message to {}", _topic );
-        ProducerRecord<byte[], byte[]> data = new ProducerRecord<byte[], byte[]>( _topic, key, message );
-        _producer.send( data );
+        ProducerRecord<byte[], byte[]> data = new ProducerRecord<byte[], byte[]>( _topic, key.length == 0 ? null : key, message );
+        Future<RecordMetadata> response = _producer.send( data );
         long time = System.currentTimeMillis() - start;
         try {
             _statsd.time( "message_sent." + _topic, time );
@@ -114,6 +117,8 @@ public class KafkaProducer {
         } catch ( Exception e ) {
             LOG.error( "cannot send statsd stats", e );
         }
+
+        return response;
     }
 
     public static void addStandardOptionsToParser( OptionParser parser ) {

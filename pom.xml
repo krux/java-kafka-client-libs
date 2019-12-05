@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.krux</groupId>
   <artifactId>kafka-client-libs</artifactId>
-  <version>3.0.1</version>
+  <version>3.0.2</version>
   
     <build>
         <plugins>
@@ -132,6 +132,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.salesforce.kafka.test</groupId>
+            <artifactId>kafka-junit4</artifactId>
+            <version>3.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
