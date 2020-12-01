@@ -89,7 +89,7 @@
         <repository>
             <id>kruxmvn</id>
             <name>kruxmvn-releases</name>
-            <url>http://kruxmvn.artifactoryonline.com/kruxmvn/libs-releases-local</url>
+            <url>http://kruxmvn.jfrog.io/kruxmvn/libs-releases-local</url>
         </repository>
     </distributionManagement>
     
