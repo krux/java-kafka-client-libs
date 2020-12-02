@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.krux</groupId>
   <artifactId>kafka-client-libs</artifactId>
-  <version>3.0.4</version>
+  <version>3.0.5</version>
   
     <build>
         <plugins>
@@ -89,7 +89,7 @@
         <repository>
             <id>kruxmvn</id>
             <name>kruxmvn-releases</name>
-            <url>http://kruxmvn.jfrog.io/kruxmvn/libs-releases-local</url>
+            <url>https://kruxmvn.jfrog.io/artifactory/libs-releases/</url>
         </repository>
     </distributionManagement>
     
